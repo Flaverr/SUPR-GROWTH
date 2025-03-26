@@ -121,4 +121,31 @@ body:not(.dark-theme) #basket { background: #8B4513; border: 2px solid #FFD700; 
 #basket.destroyed { animation: destroy 0.5s ease-out forwards; }
 
 /* Leaderboard */
-#leaderboard { background: rgba(255, 255, 255, 0.2); padding: 10px; border
+#leaderboard { background: rgba(255, 255, 255, 0.2); padding: 10px; border-radius: 5px; color: #000; text-align: center; width: 100%; }
+body.dark-theme #leaderboard { background: rgba(255, 255, 255, 0.2); color: #000; }
+body:not(.dark-theme) #leaderboard { background: rgba(255, 255, 255, 0.8); color: #000; }
+#rankings-container { display: flex; justify-content: space-between; width: 100%; }
+#daily-rankings, #all-time-rankings { width: 48%; }
+#leaderboard ul { list-style: none; padding: 0; margin: 5px 0; font-size: 0.9em; }
+#leaderboard h3 { font-size: 1.2em; margin: 10px 0 5px; }
+
+/* Popups */
+#game-over, #mystery-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; }
+#game-over.active, #mystery-popup.active { display: flex; justify-content: center; align-items: center; }
+#game-over-content, #mystery-content { background: #222; padding: 20px; border-radius: 10px; text-align: center; color: #fff; width: 400px; max-width: 90%; border: 2px solid #91D3D1; box-shadow: 0 0 10px rgba(145, 211, 209, 0.5); }
+#game-over-content h2, #mystery-content h2 { font-size: 1.8em; margin-bottom: 15px; }
+#game-over-content p, #mystery-content p { font-weight: 400; margin: 10px 0; font-size: 1.1em; }
+.mystery-option { margin: 15px 0; }
+.mystery-option button { width: 100%; padding: 12px; background: #FFD700; border: none; border-radius: 5px; font-size: 1.2em; font-weight: 900; cursor: pointer; transition: background 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.mystery-option button .icon { font-size: 1.3em; }
+.mystery-option button:hover { background: #FFA500; }
+.mystery-option p { font-weight: 400; font-size: 0.9em; margin-top: 5px; color: #ddd; }
+.progress-bar { width: 100%; height: 5px; background: #555; margin-top: 5px; border-radius: 3px; overflow: hidden; }
+.progress-bar::after { content: ''; display: block; width: 100%; height: 100%; background: #91D3D1; transform: scaleX(1); transform-origin: left; animation: shrink 30s linear forwards; }
+#reset-button { padding: 10px 20px; background: #FFD700; border: none; border-radius: 5px; cursor: pointer; }
+#reset-button:hover { background: #FFA500; }
+
+/* Buttons */
+#sound-toggle, #theme-toggle, #pause-button { position: fixed; bottom: 20px; right: 20px; padding: 10px; font-size: 1.5em; background: #212121; color: #fff; border: none; border-radius: 50%; cursor: pointer; }
+#sound-toggle { bottom: 70px; }
+#pause-button { bottom: 120px; }
