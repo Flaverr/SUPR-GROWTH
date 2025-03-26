@@ -1,10 +1,10 @@
 const items = [
-    { value: '🌱', points: 50, chance: 25, speed: 1 },  // Super Sprout
-    { value: '🌽', points: 20, chance: 30, speed: 1 },  // Corn King
-    { value: '🥕', points: 30, chance: 20, speed: 1 },  // Carrot Cash
-    { value: '💧', points: 5, chance: 10, speed: 1 },   // Liquid Loan
-    { value: '🪱', points: 0, chance: 10, speed: 1 },   // Worminator
-    { value: '🎁', points: 0, chance: 5, speed: 1 }     // Mystery Box
+    { value: '🌱', points: 50, chance: 25, baseSpeed: 1.0 }, // Super Sprout
+    { value: '🌽', points: 20, chance: 30, baseSpeed: 1.2 }, // Corn King
+    { value: '🥕', points: 30, chance: 20, baseSpeed: 0.9 }, // Carrot Cash
+    { value: '💧', points: 5, chance: 10, baseSpeed: 1.1 },  // Liquid Loan
+    { value: '🪱', points: 0, chance: 10, baseSpeed: 2.0 },  // Worminator (fastest)
+    { value: '🎁', points: 0, chance: 5, baseSpeed: 0.8 }    // Mystery Box
 ];
 
 let gameActive = false;
@@ -14,8 +14,8 @@ let isMuted = false;
 let multiplier = 1;
 let shield = false;
 let logoSize = 100;
-let dropInterval = 2000; // Slower initial drop rate
-let speedMultiplier = 1; // Speed scales with score
+let dropInterval = 2000; // ~2s between spawns
+let speedMultiplier = 1; // Scales with score
 let allTimeScores = JSON.parse(localStorage.getItem('suprGrowthScores')) || [];
 let dailyScores = JSON.parse(localStorage.getItem('suprGrowthDailyScores')) || { date: null, scores: [] };
 
@@ -140,10 +140,11 @@ function startGame() {
 
 function dropLoop() {
     if (!gameActive) return;
-    // Spawn 2 items per loop for more emoticons
-    dropItem();
-    dropItem();
-    setTimeout(dropLoop, Math.random() * dropInterval + 500);
+    // Spawn 5 items per loop
+    for (let i = 0; i < 5; i++) {
+        dropItem();
+    }
+    setTimeout(dropLoop, Math.random() * dropInterval + 500); // ~2-2.5s
 }
 
 function dropItem() {
@@ -155,6 +156,10 @@ function dropItem() {
         return random < cumulative;
     });
 
+    // Add randomness to speed (±20% of base speed)
+    const randomFactor = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
+    const speed = item.baseSpeed * randomFactor * speedMultiplier;
+
     const elem = document.createElement('div');
     elem.classList.add('falling-item');
     elem.textContent = item.value;
@@ -163,7 +168,7 @@ function dropItem() {
     elem.style.top = '0px';
     leftPanel.appendChild(elem);
 
-    const duration = dropInterval / (item.speed * speedMultiplier) / 1000;
+    const duration = dropInterval / speed / 1000;
     elem.style.transition = `top ${duration}s linear`;
     elem.style.top = `${leftPanel.offsetHeight}px`;
 
@@ -219,7 +224,6 @@ function updateGrowth() {
         setTimeout(() => superseedLogo.classList.remove('wiggle'), 500);
     }
     speedMultiplier = 1 + Math.floor(score / 500) * 0.15; // 15% speed increase per 500 points
-    dropInterval = Math.max(1000, 2000 - score / 10); // Keep drop frequency manageable
 }
 
 function endGame() {
@@ -229,13 +233,13 @@ function endGame() {
     dailyScores.scores.push({ username, score });
     allTimeScores.sort((a, b) => b.score - a.score);
     dailyScores.scores.sort((a, b) => b.score - a.score);
-    allTimeScores = allTimeScores.slice(0, 5);
-    dailyScores.scores = dailyScores.slice(0, 5);
+    allTimeScores = allTimeScores.slice(0, 10); // Top 10
+    dailyScores.scores = dailyScores.scores.slice(0, 10); // Top 10
     localStorage.setItem('suprGrowthScores', JSON.stringify(allTimeScores));
     localStorage.setItem('suprGrowthDailyScores', JSON.stringify(dailyScores));
     finalScore.textContent = score;
     updateLeaderboard();
-    gameOverScreen.classList.add('active');
+    gameOverScreen.classList.add('active'); // Ensure this triggers
 }
 
 function resumeGame() {
@@ -251,7 +255,7 @@ function updateLeaderboard() {
 }
 
 function checkDailyReset() {
-    const today = new Date('2025-03-26').toDateString(); // Fixed date per your setup
+    const today = new Date('2025-03-26').toDateString(); // Fixed date per setup
     if (!dailyScores.date || dailyScores.date !== today) {
         dailyScores = { date: today, scores: [] };
         localStorage.setItem('suprGrowthDailyScores', JSON.stringify(dailyScores));
