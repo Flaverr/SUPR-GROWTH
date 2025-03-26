@@ -5,7 +5,12 @@ body {
     font-weight: 900;
     height: 100vh;
     overflow: hidden;
-    background: #91D3D1;
+    background: #91D3D1; /* Light theme default */
+    transition: background 0.3s ease;
+}
+
+body.dark-theme {
+    background: #1a1a1a; /* Dark theme background */
 }
 
 .hidden {
@@ -22,6 +27,13 @@ body {
     text-align: center;
     color: #fff;
     padding: 20px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10;
 }
 
 #splash-screen h1 {
@@ -77,6 +89,10 @@ body {
     position: relative;
 }
 
+body.dark-theme #left-panel {
+    background: linear-gradient(180deg, #2c3e50 0%, #333 20%);
+}
+
 #right-panel {
     width: 30%;
     display: flex;
@@ -90,10 +106,18 @@ body {
     color: #000;
 }
 
+body.dark-theme #player-name {
+    color: #fff;
+}
+
 #score-display {
     font-size: 2em;
     color: #000;
     margin: 20px 0;
+}
+
+body.dark-theme #score-display {
+    color: #fff;
 }
 
 #growth-display {
@@ -145,6 +169,11 @@ body {
     border-radius: 5px;
 }
 
+body.dark-theme #leaderboard {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
 #leaderboard ul {
     list-style: none;
     padding: 0;
@@ -157,7 +186,7 @@ body {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.7);
-    display: none; /* Changed from flex to none for initial state */
+    display: none;
 }
 
 #game-over.active, #mystery-popup.active {
@@ -166,7 +195,7 @@ body {
     align-items: center;
 }
 
-#game-over-content, #mystery-content {
+#game-over-content {
     background: #fff;
     padding: 20px;
     border-radius: 10px;
@@ -174,24 +203,57 @@ body {
     color: #000;
 }
 
-#mystery-content {
-    background: #000;
+body.dark-theme #game-over-content {
+    background: #333;
     color: #fff;
 }
 
-#mystery-content button {
-    display: block;
-    width: 80%;
-    margin: 10px auto;
-    padding: 10px;
+#mystery-content {
+    background: #222;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    color: #fff;
+    width: 400px;
+    max-width: 90%;
+}
+
+#mystery-content h2 {
+    font-size: 1.8em;
+    margin-bottom: 15px;
+}
+
+#mystery-content p {
+    font-weight: 400;
+    margin: 10px 0;
+    font-size: 1.1em;
+}
+
+.mystery-option {
+    margin: 15px 0;
+}
+
+.mystery-option button {
+    width: 100%;
+    padding: 12px;
     background: #FFD700;
     border: none;
     border-radius: 5px;
+    font-size: 1.2em;
+    font-weight: 900;
     cursor: pointer;
+    transition: background 0.2s ease;
 }
 
-#mystery-content button:hover {
+.mystery-option button:hover {
     background: #FFA500;
+}
+
+.mystery-option p {
+    font-weight: 400;
+    font-size: 0.9em;
+    margin-top: 5px;
+    color: #ddd;
 }
 
 #reset-button {
