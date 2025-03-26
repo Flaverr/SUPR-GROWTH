@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;900&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="dark-theme">
     <div id="game-container">
         <!-- Splash Screen (Intro Page) -->
         <div id="splash-screen">
@@ -55,21 +55,23 @@
             </div>
         </div>
 
-        <!-- Mystery Box Popup (Redesigned) -->
+        <!-- Mystery Box Popup (Redesigned with Icons and Progress Bars) -->
         <div id="mystery-popup" class="hidden">
             <div id="mystery-content">
                 <h2><strong>Superseed Mystery Box</strong></h2>
                 <p>Choose a Superseed feature to boost your $SUPR harvest:</p>
                 <div class="mystery-option">
-                    <button id="burn-debt"><strong>Burn Debt</strong></button>
+                    <button id="burn-debt"><span class="icon">🔥</span> <strong>Burn Debt</strong></button>
                     <p>Sacrifice 25% of your score for a 2x multiplier on points for 30 seconds.</p>
+                    <div id="burn-debt-bar" class="progress-bar hidden"></div>
                 </div>
                 <div class="mystery-option">
-                    <button id="supercollateral"><strong>Supercollateral</strong></button>
+                    <button id="supercollateral"><span class="icon">🛡️</span> <strong>Supercollateral</strong></button>
                     <p>Gain a shield against the Worminator for 30 seconds.</p>
+                    <div id="supercollateral-bar" class="progress-bar hidden"></div>
                 </div>
                 <div class="mystery-option">
-                    <button id="proof-repayment"><strong>Proof-of-Repayment</strong></button>
+                    <button id="proof-repayment"><span class="icon">🎲</span> <strong>Proof-of-Repayment</strong></button>
                     <p>Gamble your score: 60% chance to double it, 40% chance to halve it.</p>
                 </div>
             </div>
