@@ -46,6 +46,7 @@ const sounds = {
     mystery: document.getElementById('sound-mystery')
 };
 
+// Event Listeners
 startButton.addEventListener('click', startGame);
 resetButton.addEventListener('click', startGame);
 soundToggle.addEventListener('click', () => {
@@ -87,6 +88,13 @@ leftPanel.addEventListener('mousemove', (e) => {
     basket.style.left = `${newLeft}px`;
 });
 
+// Ensure popups are hidden on page load
+document.addEventListener('DOMContentLoaded', () => {
+    gameOverScreen.classList.remove('active');
+    mysteryPopup.classList.remove('active');
+    gameScreen.classList.add('hidden');
+});
+
 function startGame() {
     const username = usernameInput.value.trim() || 'Player';
     gameActive = true;
@@ -99,8 +107,8 @@ function startGame() {
 
     splashScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
-    gameOverScreen.classList.add('hidden');
-    mysteryPopup.classList.add('hidden');
+    gameOverScreen.classList.remove('active');
+    mysteryPopup.classList.remove('active'); // Explicitly hide Mystery Box popup
     playerName.textContent = username;
     currentScore.textContent = score;
     basket.style.width = `${basketWidth}px`;
@@ -172,7 +180,7 @@ function handleCatch(item) {
         endGame();
     } else if (item.value === '🎁') {
         gameActive = false;
-        mysteryPopup.classList.remove('hidden');
+        mysteryPopup.classList.add('active');
         if (!isMuted) sounds.mystery.play();
     }
     currentScore.textContent = score;
@@ -198,11 +206,11 @@ function endGame() {
     localStorage.setItem('suprGrowthScores', JSON.stringify(scores));
     finalScore.textContent = score;
     updateLeaderboard();
-    gameOverScreen.classList.remove('hidden');
+    gameOverScreen.classList.add('active');
 }
 
 function resumeGame() {
-    mysteryPopup.classList.add('hidden');
+    mysteryPopup.classList.remove('active');
     gameActive = true;
     dropLoop();
 }
