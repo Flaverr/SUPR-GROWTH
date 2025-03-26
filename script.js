@@ -141,13 +141,20 @@ function dropItems() {
     const probabilities = [0.1941, 0.2647, 0.2206, 0.0882, 0.1324, 0.05, 0.05];
     const random = Math.random();
     let itemType;
-    if (random < probabilities[0]) itemType = itemTypes[0]; // 🌱 Super Sprout
-    else if (random < probabilities[0] + probabilities[1]) itemType = itemTypes[1]; // 🌽 Corn King
-    else if (random < probabilities[0] + probabilities[1] + probabilities[2]) itemType = itemTypes[2]; // 🥕 Carrot Cash
-    else if (random < probabilities[0] + probabilities[1] + probabilities[2] + probabilities[3]) itemType = itemTypes[3]; // 💧 Liquid Loan
-    else if (random < probabilities[0] + probabilities[1] + probabilities[2] + probabilities[3] + probabilities[4]) itemType = itemTypes[4]; // 🪱 Worminator
-    else if (random < probabilities[0] + probabilities[1] + probabilities[2] + probabilities[3] + probabilities[4] + probabilities[5]) itemType = itemTypes[5]; // 🎁 Mystery Box
-    else itemType = itemTypes[6]; // theseed Mega Seed Blaster
+    let cumulative = 0;
+
+    for (let i = 0; i < probabilities.length; i++) {
+        cumulative += probabilities[i];
+        if (random < cumulative) {
+            itemType = itemTypes[i];
+            break;
+        }
+    }
+    if (!itemType) itemType = itemTypes[6]; // Fallback to "theseed" if all else fails
+
+    // Debug logs to confirm selection
+    if (itemType.emoji === '🎁') console.log('Mystery Box selected');
+    if (itemType.id === 'theseed') console.log('TheSeed selected');
 
     const item = document.createElement('div');
     if (itemType.id === 'theseed') {
@@ -169,7 +176,7 @@ function dropItems() {
     if (itemType.id === 'theseed') itemFallSpeed = dropSpeed / 2; // 2x faster
     else if (itemType.emoji === '🪱') itemFallSpeed = dropSpeed / 1.5; // 1.5x faster
     const fallDuration = itemFallSpeed / 1000;
-    item.style.transition = `top ${fallDuration}s`;
+    item.style.transition = `top ${fallDuration}s linear`; // Ensure linear fall
     item.style.top = `${leftPanel.offsetHeight}px`;
 
     const checkCollision = setInterval(() => {
