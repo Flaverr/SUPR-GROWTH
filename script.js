@@ -1,10 +1,10 @@
 const items = [
-    { value: '🌱', points: 50, chance: 25, speed: 1 },    // Super Sprout
-    { value: '🌽', points: 20, chance: 30, speed: 1.4 },  // Corn King (1.4x)
-    { value: '🥕', points: 30, chance: 20, speed: 1 },    // Carrot Cash
-    { value: '💧', points: 5, chance: 10, speed: 2 },     // Liquid Loan (2x)
-    { value: '🪱', points: 0, chance: 10, speed: 2 },     // Worminator (2x)
-    { value: '🎁', points: 0, chance: 5, speed: 1 }       // Mystery Box
+    { value: '🌱', points: 50, chance: 25, speed: 1 },  // Super Sprout
+    { value: '🌽', points: 20, chance: 30, speed: 1 },  // Corn King
+    { value: '🥕', points: 30, chance: 20, speed: 1 },  // Carrot Cash
+    { value: '💧', points: 5, chance: 10, speed: 1 },   // Liquid Loan
+    { value: '🪱', points: 0, chance: 10, speed: 1 },   // Worminator
+    { value: '🎁', points: 0, chance: 5, speed: 1 }     // Mystery Box
 ];
 
 let gameActive = false;
@@ -14,8 +14,10 @@ let isMuted = false;
 let multiplier = 1;
 let shield = false;
 let logoSize = 100;
-let dropInterval = 666; // Doubled frequency (was 1333ms, now 666ms)
-let scores = JSON.parse(localStorage.getItem('suprGrowthScores')) || [];
+let dropInterval = 2000; // Slower initial drop rate
+let speedMultiplier = 1; // Speed scales with score
+let allTimeScores = JSON.parse(localStorage.getItem('suprGrowthScores')) || [];
+let dailyScores = JSON.parse(localStorage.getItem('suprGrowthDailyScores')) || { date: null, scores: [] };
 
 const splashScreen = document.getElementById('splash-screen');
 const gameScreen = document.getElementById('game-screen');
@@ -26,7 +28,9 @@ const currentScore = document.getElementById('current-score');
 const superseedLogo = document.getElementById('superseed-logo');
 const basket = document.getElementById('basket');
 const leftPanel = document.getElementById('left-panel');
-const scoreList = document.getElementById('score-list');
+const allTimeList = document.getElementById('all-time-list');
+const dailyList = document.getElementById('daily-list');
+const resetAllTimeBtn = document.getElementById('reset-all-time');
 const gameOverScreen = document.getElementById('game-over');
 const finalScore = document.getElementById('final-score');
 const resetButton = document.getElementById('reset-button');
@@ -58,6 +62,11 @@ soundToggle.addEventListener('click', () => {
 themeToggle.addEventListener('click', () => {
     document.body.classList.toggle('dark-theme');
     themeToggle.textContent = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';
+});
+resetAllTimeBtn.addEventListener('click', () => {
+    allTimeScores = [];
+    localStorage.setItem('suprGrowthScores', JSON.stringify(allTimeScores));
+    updateLeaderboard();
 });
 
 burnDebtBtn.addEventListener('click', () => {
@@ -96,12 +105,14 @@ leftPanel.addEventListener('mousemove', (e) => {
     basket.style.left = `${newLeft}px`;
 });
 
-// Ensure initial state
+// Ensure initial state and check daily reset
 document.addEventListener('DOMContentLoaded', () => {
     gameOverScreen.classList.remove('active');
     mysteryPopup.classList.remove('active');
     gameScreen.classList.add('hidden');
     splashScreen.classList.remove('hidden');
+    checkDailyReset();
+    updateLeaderboard();
 });
 
 function startGame() {
@@ -112,7 +123,8 @@ function startGame() {
     multiplier = 1;
     shield = false;
     logoSize = 100;
-    dropInterval = 666;
+    dropInterval = 2000;
+    speedMultiplier = 1;
 
     splashScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
@@ -128,8 +140,10 @@ function startGame() {
 
 function dropLoop() {
     if (!gameActive) return;
+    // Spawn 2 items per loop for more emoticons
     dropItem();
-    setTimeout(dropLoop, Math.random() * dropInterval + 166); // Adjusted for doubled frequency
+    dropItem();
+    setTimeout(dropLoop, Math.random() * dropInterval + 500);
 }
 
 function dropItem() {
@@ -149,7 +163,7 @@ function dropItem() {
     elem.style.top = '0px';
     leftPanel.appendChild(elem);
 
-    const duration = dropInterval / item.speed / 1000;
+    const duration = dropInterval / (item.speed * speedMultiplier) / 1000;
     elem.style.transition = `top ${duration}s linear`;
     elem.style.top = `${leftPanel.offsetHeight}px`;
 
@@ -180,7 +194,7 @@ function handleCatch(item) {
         }
     } else if (item.value === '💧') {
         score += item.points * multiplier;
-        basketWidth = 100 + Math.random() * 500; // Increased to 500% (600px max)
+        basketWidth = 100 + Math.random() * 500; // Max 600px
         basket.style.width = `${basketWidth}px`;
         if (!isMuted) sounds.water.play();
     } else if (item.value === '🪱') {
@@ -204,15 +218,21 @@ function updateGrowth() {
         superseedLogo.classList.add('wiggle');
         setTimeout(() => superseedLogo.classList.remove('wiggle'), 500);
     }
-    dropInterval = Math.max(333, 666 - score / 20); // Adjusted min for doubled frequency
+    speedMultiplier = 1 + Math.floor(score / 500) * 0.15; // 15% speed increase per 500 points
+    dropInterval = Math.max(1000, 2000 - score / 10); // Keep drop frequency manageable
 }
 
 function endGame() {
     gameActive = false;
-    scores.push({ username: playerName.textContent, score });
-    scores.sort((a, b) => b.score - a.score);
-    scores = scores.slice(0, 5);
-    localStorage.setItem('suprGrowthScores', JSON.stringify(scores));
+    const username = playerName.textContent;
+    allTimeScores.push({ username, score });
+    dailyScores.scores.push({ username, score });
+    allTimeScores.sort((a, b) => b.score - a.score);
+    dailyScores.scores.sort((a, b) => b.score - a.score);
+    allTimeScores = allTimeScores.slice(0, 5);
+    dailyScores.scores = dailyScores.slice(0, 5);
+    localStorage.setItem('suprGrowthScores', JSON.stringify(allTimeScores));
+    localStorage.setItem('suprGrowthDailyScores', JSON.stringify(dailyScores));
     finalScore.textContent = score;
     updateLeaderboard();
     gameOverScreen.classList.add('active');
@@ -225,5 +245,15 @@ function resumeGame() {
 }
 
 function updateLeaderboard() {
-    scoreList.innerHTML = scores.map(s => `<li>${s.username}: ${s.score}</li>`).join('');
+    allTimeList.innerHTML = allTimeScores.map(s => `<li>${s.username}: ${s.score}</li>`).join('');
+    dailyList.innerHTML = dailyScores.scores.map(s => `<li>${s.username}: ${s.score}</li>`).join('');
+    resetAllTimeBtn.classList.toggle('hidden', allTimeScores.length === 0);
+}
+
+function checkDailyReset() {
+    const today = new Date('2025-03-26').toDateString(); // Fixed date per your setup
+    if (!dailyScores.date || dailyScores.date !== today) {
+        dailyScores = { date: today, scores: [] };
+        localStorage.setItem('suprGrowthDailyScores', JSON.stringify(dailyScores));
+    }
 }
