@@ -85,12 +85,8 @@ body:not(.dark-theme) {
 
 #left-panel {
     width: 70%;
-    background: linear-gradient(180deg, #2c3e50 0%, #333 20%);
+    background: #91D3D1; /* Fixed color for both themes */
     position: relative;
-}
-
-body:not(.dark-theme) #left-panel {
-    background: linear-gradient(180deg, #87CEEB 0%, #FFF 20%);
 }
 
 #right-panel {
@@ -151,8 +147,8 @@ body:not(.dark-theme) #score-display {
     position: absolute;
     bottom: 20px;
     left: 0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Nice detail */
-    border: 2px solid #FFD700; /* Gold border for flair */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    border: 2px solid #FFD700;
 }
 
 body:not(.dark-theme) #basket {
@@ -176,6 +172,7 @@ body:not(.dark-theme) #basket {
     padding: 10px;
     border-radius: 5px;
     color: #fff;
+    text-align: center;
 }
 
 body:not(.dark-theme) #leaderboard {
@@ -186,6 +183,26 @@ body:not(.dark-theme) #leaderboard {
 #leaderboard ul {
     list-style: none;
     padding: 0;
+    margin: 5px 0;
+}
+
+#leaderboard h3 {
+    font-size: 1.2em;
+    margin: 10px 0 5px;
+}
+
+#reset-all-time {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background: #FF6347;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
+}
+
+#reset-all-time:hover {
+    background: #FF4500;
 }
 
 #game-over, #mystery-popup {
@@ -225,8 +242,8 @@ body:not(.dark-theme) #game-over-content {
     color: #fff;
     width: 400px;
     max-width: 90%;
-    border: 2px solid #FFD700; /* Gold border */
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); /* Glow effect */
+    border: 2px solid #91D3D1; /* Updated border color */
+    box-shadow: 0 0 10px rgba(145, 211, 209, 0.5); /* Adjusted glow */
 }
 
 #mystery-content h2 {
@@ -257,7 +274,7 @@ body:not(.dark-theme) #game-over-content {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px; /* Space between icon and text */
+    gap: 10px;
 }
 
 .mystery-option button .icon {
@@ -289,10 +306,10 @@ body:not(.dark-theme) #game-over-content {
     display: block;
     width: 100%;
     height: 100%;
-    background: #91D3D1; /* Progress bar color */
+    background: #91D3D1;
     transform: scaleX(1);
     transform-origin: left;
-    transition: transform 30s linear; /* Matches 30s duration */
+    transition: transform 30s linear;
 }
 
 .progress-bar.active::after {
