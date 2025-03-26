@@ -1,10 +1,10 @@
 // Game Data
 const ITEMS = [
-    { value: '🌱', points: 50, chance: 30, baseSpeed: 0.8 },
-    { value: '🌽', points: 20, chance: 35, baseSpeed: 0.96 },
+    { value: '🌱', points: 50, chance: 20, baseSpeed: 0.8 },
+    { value: '🌽', points: 20, chance: 30, baseSpeed: 0.96 },
     { value: '🥕', points: 30, chance: 25, baseSpeed: 0.72 },
     { value: '💧', points: 5, chance: 5, baseSpeed: 0.88 },
-    { value: '🪱', points: 0, chance: 4, baseSpeed: 1.6 },
+    { value: '🪱', points: 0, chance: 6, baseSpeed: 1.6 },
     { value: '🎁', points: 0, chance: 1, baseSpeed: 0.64 } // Rarer Mystery Box
 ];
 
