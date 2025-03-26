@@ -3,7 +3,7 @@ let username = '';
 let score = 0;
 let growthStage = 0;
 let gameActive = false;
-let dropSpeed = 3000; // Start at 3000ms
+let dropSpeed = 3000;
 let doubleGrowth = false;
 let basketWidth = 100;
 let basketDoubles = 0;
@@ -50,12 +50,12 @@ const soundMystery = document.getElementById('sound-mystery');
 
 // Item types
 const itemTypes = [
-    { emoji: '🌱', points: 50 }, // Super Sprout
-    { emoji: '🌽', points: 20 }, // Corn King
-    { emoji: '🥕', points: 30 }, // Carrot Cash
-    { emoji: '💧', points: 5 },  // Liquid Loan
-    { emoji: '🪱', points: 0 },  // Worminator
-    { emoji: '🎁', points: 0 }   // Mystery Box
+    { emoji: '🌱', points: 50 },
+    { emoji: '🌽', points: 20 },
+    { emoji: '🥕', points: 30 },
+    { emoji: '💧', points: 5 },
+    { emoji: '🪱', points: 0 },
+    { emoji: '🎁', points: 0 }
 ];
 
 // Theme toggle
@@ -120,7 +120,7 @@ function startGame() {
     gameOverScreen.classList.add('hidden');
     mysteryPopup.classList.add('hidden');
     dropItems();
-    dropItems(); // Double emoticons
+    dropItems();
     updateLeaderboard();
     if (localStorage.getItem('theme') === 'dark') {
         document.body.classList.add('dark-theme');
@@ -188,7 +188,7 @@ function handleCatch(itemType) {
         updateGrowth();
     } else if (itemType.emoji === '💧') {
         score += itemType.points * pointMultiplier;
-        basketWidth = 100 + Math.random() * 200; // 100% to 300%
+        basketWidth = 100 + Math.random() * 200;
         basket.style.width = `${basketWidth}px`;
         if (!isMuted) soundWater.play();
         updateGrowth();
@@ -215,20 +215,18 @@ function handleCatch(itemType) {
 burnDebtBtn.addEventListener('click', () => {
     score = Math.floor(score * 0.75);
     pointMultiplier = 2;
-    multiplierTime = 30; // 30 seconds
+    multiplierTime = 300; // 30 seconds (300 ticks at 100ms)
     multiplierBar.classList.remove('hidden');
     multiplierBar.style.width = '100%';
-    updateMultiplier();
     resumeGame();
 });
 
 supercollateralBtn.addEventListener('click', () => {
     isShielded = true;
-    shieldTime = 20; // 20 seconds
+    shieldTime = 300; // 30 seconds (300 ticks at 100ms)
     basket.classList.add('shielded');
     shieldBar.classList.remove('hidden');
     shieldBar.style.width = '100%';
-    updateShield();
     resumeGame();
 });
 
@@ -253,16 +251,14 @@ function resumeGame() {
 
 // Shield countdown
 function updateShield() {
-    if (!isShielded) return;
-    shieldTime -= 0.1;
-    shieldBar.style.width = `${(shieldTime / 20) * 100}%`;
-    if (shieldTime <= 0) {
+    if (!isShielded || shieldTime <= 0) {
         isShielded = false;
         basket.classList.remove('shielded');
         shieldBar.classList.add('hidden');
-    } else {
-        setTimeout(updateShield, 100);
+        return;
     }
+    shieldTime--;
+    shieldBar.style.width = `${(shieldTime / 300) * 100}%`; // 300 ticks = 30s
 }
 
 // Multiplier countdown
@@ -272,9 +268,8 @@ function updateMultiplier() {
         multiplierBar.classList.add('hidden');
         return;
     }
-    multiplierTime -= 0.1;
-    multiplierBar.style.width = `${(multiplierTime / 30) * 100}%`;
-    setTimeout(updateMultiplier, 100);
+    multiplierTime--;
+    multiplierBar.style.width = `${(multiplierTime / 300) * 100}%`; // 300 ticks = 30s
 }
 
 // Update growth
@@ -349,4 +344,4 @@ setInterval(() => {
         if (isShielded) updateShield();
         if (multiplierTime > 0) updateMultiplier();
     }
-}, 100);
+}, 100); // 100ms per tick
