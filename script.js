@@ -180,7 +180,7 @@ function dropItem() {
     elem.style.transition = `top ${duration}s linear`;
     elem.style.top = `${DOM.leftPanel.offsetHeight}px`;
     const collisionCheck = setInterval(() => {
-        if (!gameActive || isPaused) return;
+        if (!gameActive || isPaused) return; // Pause collision checks
         const basketRect = DOM.basket.getBoundingClientRect();
         const itemRect = elem.getBoundingClientRect();
         if (itemRect.left < basketRect.right && itemRect.right > basketRect.left &&
@@ -201,7 +201,7 @@ function handleCatch(item, elem) {
         score += item.points * multiplier;
         basketWidth = 100 + Math.random() * 500;
         DOM.basket.style.width = `${basketWidth}px`;
-        DOM.progressContainer.style.width = `${basketWidth}px`;
+        DOM.progressContainer.style.width = `${basketWidth}px`; // Sync progress bar width
         if (!isMuted) SOUNDS.water.play();
     } else if (item.value === '🪱') {
         if (shield) return;
@@ -225,9 +225,9 @@ function handleCatch(item, elem) {
 function updateGrowth() {
     let newSize = logoSize;
     if (score <= 6000) {
-        newSize = 100 * (1 + 0.3 * Math.floor(score / 500));
+        newSize = 100 * (1 + 0.3 * Math.floor(score / 500)); // 30% increase per 500 points
     }
-    if (score > 6000 && score % 500 < 50) {
+    if (score > 6000 && score % 500 < 50) { // Wiggle near 500-point increments
         DOM.superseedLogo.classList.add('wiggle');
         setTimeout(() => DOM.superseedLogo.classList.remove('wiggle'), 500);
     }
