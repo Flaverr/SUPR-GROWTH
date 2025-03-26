@@ -51,11 +51,11 @@ body:not(.dark-theme) {
 body:not(.dark-theme) #left-panel { background: linear-gradient(180deg, #91D3D1 20%, #FFF 100%); }
 #right-panel { width: 30%; background: #91D3D1; display: flex; flex-direction: column; align-items: center; padding: 20px; }
 #player-name { font-size: 2em; color: #000; }
-body:not(.dark-theme) #player-name { color: #000; }
 body.dark-theme #player-name { color: #000; }
+body:not(.dark-theme) #player-name { color: #000; }
 #score-display { font-size: 2em; color: #000; margin: 20px 0; }
-body:not(.dark-theme) #score-display { color: #000; }
 body.dark-theme #score-display { color: #000; }
+body:not(.dark-theme) #score-display { color: #000; }
 #growth-display { flex-grow: 1; display: flex; align-items: center; }
 
 /* Basket and Falling Items */
@@ -121,8 +121,8 @@ body:not(.dark-theme) #basket { background: #8B4513; border: 2px solid #FFD700; 
 
 /* Leaderboard */
 #leaderboard { background: rgba(255, 255, 255, 0.2); padding: 10px; border-radius: 5px; color: #000; text-align: center; width: 100%; }
-body:not(.dark-theme) #leaderboard { background: rgba(255, 255, 255, 0.8); color: #000; }
 body.dark-theme #leaderboard { background: rgba(255, 255, 255, 0.2); color: #000; }
+body:not(.dark-theme) #leaderboard { background: rgba(255, 255, 255, 0.8); color: #000; }
 #rankings-container { display: flex; justify-content: space-between; width: 100%; }
 #daily-rankings, #all-time-rankings { width: 48%; }
 #leaderboard ul { list-style: none; padding: 0; margin: 5px 0; font-size: 0.9em; }
