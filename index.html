@@ -7,9 +7,9 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;900&display=swap" rel="stylesheet">
 </head>
-<body class="light-theme">
+<body>
     <div id="game-container">
-        <!-- Splash Screen -->
+        <!-- Splash Screen (Intro Page) -->
         <div id="splash-screen">
             <h1>SUPR Growth</h1>
             <input type="text" id="username" placeholder="Enter your username" maxlength="20">
@@ -28,7 +28,7 @@
             </div>
         </div>
 
-        <!-- Game Screen -->
+        <!-- Game Screen (Split Screen) -->
         <div id="game-screen" class="hidden">
             <div id="left-panel">
                 <div id="basket"></div>
@@ -55,13 +55,23 @@
             </div>
         </div>
 
-        <!-- Mystery Box Popup -->
+        <!-- Mystery Box Popup (Redesigned) -->
         <div id="mystery-popup" class="hidden">
             <div id="mystery-content">
-                <h2>Mystery Box!</h2>
-                <button id="burn-debt">Burn Debt (Lose 25%, 2x points 30s)</button>
-                <button id="supercollateral">Shield (20s)</button>
-                <button id="proof-repayment">Gamble (60% double, 40% half)</button>
+                <h2><strong>Superseed Mystery Box</strong></h2>
+                <p>Choose a Superseed feature to boost your $SUPR harvest:</p>
+                <div class="mystery-option">
+                    <button id="burn-debt"><strong>Burn Debt</strong></button>
+                    <p>Sacrifice 25% of your score for a 2x multiplier on points for 30 seconds.</p>
+                </div>
+                <div class="mystery-option">
+                    <button id="supercollateral"><strong>Supercollateral</strong></button>
+                    <p>Gain a shield against the Worminator for 30 seconds.</p>
+                </div>
+                <div class="mystery-option">
+                    <button id="proof-repayment"><strong>Proof-of-Repayment</strong></button>
+                    <p>Gamble your score: 60% chance to double it, 40% chance to halve it.</p>
+                </div>
             </div>
         </div>
 
