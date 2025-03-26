@@ -5,12 +5,12 @@ body {
     font-weight: 900;
     height: 100vh;
     overflow: hidden;
-    background: #91D3D1; /* Light theme default */
+    background: #212121; /* Dark theme default */
     transition: background 0.3s ease;
 }
 
-body.dark-theme {
-    background: #1a1a1a; /* Dark theme background */
+body:not(.dark-theme) {
+    background: #91D3D1; /* Light theme */
 }
 
 .hidden {
@@ -85,12 +85,12 @@ body.dark-theme {
 
 #left-panel {
     width: 70%;
-    background: linear-gradient(180deg, #87CEEB 0%, #FFF 20%);
+    background: linear-gradient(180deg, #2c3e50 0%, #333 20%);
     position: relative;
 }
 
-body.dark-theme #left-panel {
-    background: linear-gradient(180deg, #2c3e50 0%, #333 20%);
+body:not(.dark-theme) #left-panel {
+    background: linear-gradient(180deg, #87CEEB 0%, #FFF 20%);
 }
 
 #right-panel {
@@ -103,21 +103,21 @@ body.dark-theme #left-panel {
 
 #player-name {
     font-size: 2em;
-    color: #000;
+    color: #fff;
 }
 
-body.dark-theme #player-name {
-    color: #fff;
+body:not(.dark-theme) #player-name {
+    color: #000;
 }
 
 #score-display {
     font-size: 2em;
-    color: #000;
+    color: #fff;
     margin: 20px 0;
 }
 
-body.dark-theme #score-display {
-    color: #fff;
+body:not(.dark-theme) #score-display {
+    color: #000;
 }
 
 #growth-display {
@@ -146,11 +146,19 @@ body.dark-theme #score-display {
 #basket {
     width: 100px;
     height: 30px;
-    background: #8B4513;
+    background: #d3d3d3; /* Light grey for dark theme */
     border-radius: 0 0 50px 50px;
     position: absolute;
     bottom: 20px;
     left: 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Nice detail */
+    border: 2px solid #FFD700; /* Gold border for flair */
+}
+
+body:not(.dark-theme) #basket {
+    background: #8B4513; /* Brown for light theme */
+    border: none;
+    box-shadow: none;
 }
 
 #basket.shielded {
@@ -164,14 +172,15 @@ body.dark-theme #score-display {
 }
 
 #leaderboard {
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.2);
     padding: 10px;
     border-radius: 5px;
+    color: #fff;
 }
 
-body.dark-theme #leaderboard {
-    background: rgba(255, 255, 255, 0.2);
-    color: #fff;
+body:not(.dark-theme) #leaderboard {
+    background: rgba(255, 255, 255, 0.8);
+    color: #000;
 }
 
 #leaderboard ul {
@@ -196,16 +205,16 @@ body.dark-theme #leaderboard {
 }
 
 #game-over-content {
-    background: #fff;
+    background: #333;
     padding: 20px;
     border-radius: 10px;
     text-align: center;
-    color: #000;
+    color: #fff;
 }
 
-body.dark-theme #game-over-content {
-    background: #333;
-    color: #fff;
+body:not(.dark-theme) #game-over-content {
+    background: #fff;
+    color: #000;
 }
 
 #mystery-content {
@@ -216,6 +225,8 @@ body.dark-theme #game-over-content {
     color: #fff;
     width: 400px;
     max-width: 90%;
+    border: 2px solid #FFD700; /* Gold border */
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); /* Glow effect */
 }
 
 #mystery-content h2 {
@@ -243,6 +254,14 @@ body.dark-theme #game-over-content {
     font-weight: 900;
     cursor: pointer;
     transition: background 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px; /* Space between icon and text */
+}
+
+.mystery-option button .icon {
+    font-size: 1.3em;
 }
 
 .mystery-option button:hover {
@@ -254,6 +273,30 @@ body.dark-theme #game-over-content {
     font-size: 0.9em;
     margin-top: 5px;
     color: #ddd;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 5px;
+    background: #555;
+    margin-top: 5px;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-bar::after {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: #91D3D1; /* Progress bar color */
+    transform: scaleX(1);
+    transform-origin: left;
+    transition: transform 30s linear; /* Matches 30s duration */
+}
+
+.progress-bar.active::after {
+    transform: scaleX(0);
 }
 
 #reset-button {
