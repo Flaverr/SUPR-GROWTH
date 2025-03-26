@@ -1,11 +1,11 @@
 // Game Data
 const ITEMS = [
-    { value: '🌱', points: 50, chance: 25, baseSpeed: 0.8 },
-    { value: '🌽', points: 20, chance: 30, baseSpeed: 0.96 },
-    { value: '🥕', points: 30, chance: 20, baseSpeed: 0.72 },
-    { value: '💧', points: 5, chance: 10, baseSpeed: 0.88 },
-    { value: '🪱', points: 0, chance: 10, baseSpeed: 1.6 },
-    { value: '🎁', points: 0, chance: 5, baseSpeed: 0.64 }
+    { value: '🌱', points: 50, chance: 30, baseSpeed: 0.8 },  // Increased chance to offset Mystery Box reduction
+    { value: '🌽', points: 20, chance: 35, baseSpeed: 0.96 }, // Adjusted for total 100
+    { value: '🥕', points: 30, chance: 25, baseSpeed: 0.72 },
+    { value: '💧', points: 5, chance: 5, baseSpeed: 0.88 },   // Reduced slightly
+    { value: '🪱', points: 0, chance: 4, baseSpeed: 1.6 },    // Reduced slightly
+    { value: '🎁', points: 0, chance: 1, baseSpeed: 0.64 }    // Reduced from 5 to 1 (rarer)
 ];
 
 // Game State
@@ -21,6 +21,8 @@ let dropInterval = 2000;
 let speedMultiplier = 1;
 let allTimeScores = JSON.parse(localStorage.getItem('suprGrowthScores')) || [];
 let dailyScores = JSON.parse(localStorage.getItem('suprGrowthDailyScores')) || { date: null, scores: [] };
+let burnDebtTimeout = null;  // Track Burn Debt timeout
+let supercollateralTimeout = null;  // Track Supercollateral timeout
 
 // DOM Elements
 const DOM = {
@@ -75,12 +77,15 @@ function setupEventListeners() {
         DOM.themeToggle.textContent = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';
     });
     DOM.burnDebtBtn.addEventListener('click', () => {
+        cancelPreviousEffects(); // Cancel any active effects
         score = Math.floor(score * 0.75);
         multiplier = 2;
         DOM.burnDebtBar.classList.add('active');
         DOM.burnDebtProgress.classList.remove('hidden');
         DOM.progressContainer.classList.remove('hidden');
-        setTimeout(() => {
+        DOM.burnDebtProgress.style.animation = 'none'; // Reset animation
+        setTimeout(() => DOM.burnDebtProgress.style.animation = 'shrink 30s linear forwards', 10); // Restart animation
+        burnDebtTimeout = setTimeout(() => {
             multiplier = 1;
             DOM.burnDebtBar.classList.remove('active');
             DOM.burnDebtProgress.classList.add('hidden');
@@ -89,12 +94,15 @@ function setupEventListeners() {
         resumeGame();
     });
     DOM.supercollateralBtn.addEventListener('click', () => {
+        cancelPreviousEffects(); // Cancel any active effects
         shield = true;
         DOM.basket.classList.add('shielded');
         DOM.supercollateralBar.classList.add('active');
         DOM.supercollateralProgress.classList.remove('hidden');
         DOM.progressContainer.classList.remove('hidden');
-        setTimeout(() => {
+        DOM.supercollateralProgress.style.animation = 'none'; // Reset animation
+        setTimeout(() => DOM.supercollateralProgress.style.animation = 'shrink 30s linear forwards', 10); // Restart animation
+        supercollateralTimeout = setTimeout(() => {
             shield = false;
             DOM.basket.classList.remove('shielded');
             DOM.supercollateralBar.classList.remove('active');
@@ -104,6 +112,7 @@ function setupEventListeners() {
         resumeGame();
     });
     DOM.proofRepaymentBtn.addEventListener('click', () => {
+        cancelPreviousEffects(); // Cancel any active effects
         score = Math.random() < 0.6 ? score * 2 : Math.floor(score / 2);
         resumeGame();
     });
@@ -141,6 +150,7 @@ function startGame() {
     logoSize = 100;
     dropInterval = 2000;
     speedMultiplier = 1;
+    cancelPreviousEffects(); // Clear any lingering effects
     DOM.splashScreen.classList.add('hidden');
     DOM.gameScreen.classList.remove('hidden');
     DOM.gameOverScreen.classList.remove('active');
@@ -180,7 +190,7 @@ function dropItem() {
     elem.style.transition = `top ${duration}s linear`;
     elem.style.top = `${DOM.leftPanel.offsetHeight}px`;
     const collisionCheck = setInterval(() => {
-        if (!gameActive || isPaused) return; // Pause collision checks
+        if (!gameActive || isPaused) return;
         const basketRect = DOM.basket.getBoundingClientRect();
         const itemRect = elem.getBoundingClientRect();
         if (itemRect.left < basketRect.right && itemRect.right > basketRect.left &&
@@ -201,7 +211,7 @@ function handleCatch(item, elem) {
         score += item.points * multiplier;
         basketWidth = 100 + Math.random() * 500;
         DOM.basket.style.width = `${basketWidth}px`;
-        DOM.progressContainer.style.width = `${basketWidth}px`; // Sync progress bar width
+        DOM.progressContainer.style.width = `${basketWidth}px`;
         if (!isMuted) SOUNDS.water.play();
     } else if (item.value === '🪱') {
         if (shield) return;
@@ -225,9 +235,9 @@ function handleCatch(item, elem) {
 function updateGrowth() {
     let newSize = logoSize;
     if (score <= 6000) {
-        newSize = 100 * (1 + 0.3 * Math.floor(score / 500)); // 30% increase per 500 points
+        newSize = 100 * (1 + 0.8 * Math.floor(score / 500)); // 80% increase per 500 points
     }
-    if (score > 6000 && score % 500 < 50) { // Wiggle near 500-point increments
+    if (score > 6000 && score % 500 < 50) {
         DOM.superseedLogo.classList.add('wiggle');
         setTimeout(() => DOM.superseedLogo.classList.remove('wiggle'), 500);
     }
@@ -248,7 +258,7 @@ function endGame() {
     allTimeScores.sort((a, b) => b.score - a.score);
     dailyScores.scores.sort((a, b) => b.score - a.score);
     allTimeScores = allTimeScores.slice(0, 10);
-    dailyScores.scores = dailyScores.scores.slice(0, 10);
+    dailyScores.scores = dailyScores.slice(0, 10);
     localStorage.setItem('suprGrowthScores', JSON.stringify(allTimeScores));
     localStorage.setItem('suprGrowthDailyScores', JSON.stringify(dailyScores));
     DOM.finalScore.textContent = score;
@@ -281,4 +291,23 @@ function checkDailyReset() {
         dailyScores = { date: today, scores: [] };
         localStorage.setItem('suprGrowthDailyScores', JSON.stringify(dailyScores));
     }
+}
+
+function cancelPreviousEffects() {
+    if (burnDebtTimeout) {
+        clearTimeout(burnDebtTimeout);
+        multiplier = 1;
+        DOM.burnDebtBar.classList.remove('active');
+        DOM.burnDebtProgress.classList.add('hidden');
+        burnDebtTimeout = null;
+    }
+    if (supercollateralTimeout) {
+        clearTimeout(supercollateralTimeout);
+        shield = false;
+        DOM.basket.classList.remove('shielded');
+        DOM.supercollateralBar.classList.remove('active');
+        DOM.supercollateralProgress.classList.add('hidden');
+        supercollateralTimeout = null;
+    }
+    if (multiplier === 1 && !shield) DOM.progressContainer.classList.add('hidden');
 }
