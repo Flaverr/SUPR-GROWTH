@@ -67,7 +67,10 @@ const SOUNDS = {
 // Event Listeners
 function setupEventListeners() {
     DOM.startButton.addEventListener('click', startGame);
-    DOM.resetButton.addEventListener('click', startGame);
+    DOM.resetButton.addEventListener('click', () => {
+        DOM.gameOverScreen.classList.add('hidden'); // Hide Game Over popup before restart
+        startGame(); // Restart the game
+    });
     DOM.soundToggle.addEventListener('click', () => {
         isMuted = !isMuted;
         DOM.soundToggle.textContent = isMuted ? '🔇' : '🔊';
@@ -265,8 +268,8 @@ function endGame() {
     localStorage.setItem('suprGrowthScores', JSON.stringify(allTimeScores));
     localStorage.setItem('suprGrowthDailyScores', JSON.stringify(dailyScores));
     DOM.finalScore.textContent = score;
-    DOM.gameOverScreen.classList.remove('hidden'); // Show Game Over popup
     updateLeaderboard();
+    DOM.gameOverScreen.classList.remove('hidden'); // Explicitly show Game Over popup
 }
 
 function resumeGame() {
