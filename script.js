@@ -1,10 +1,10 @@
 // Game Data
 const ITEMS = [
-    { value: '🌱', points: 50, chance: 20, baseSpeed: 0.8 },
-    { value: '🌽', points: 20, chance: 30, baseSpeed: 0.96 },
+    { value: '🌱', points: 50, chance: 30, baseSpeed: 0.8 },
+    { value: '🌽', points: 20, chance: 35, baseSpeed: 0.96 },
     { value: '🥕', points: 30, chance: 25, baseSpeed: 0.72 },
     { value: '💧', points: 5, chance: 5, baseSpeed: 0.88 },
-    { value: '🪱', points: 0, chance: 6, baseSpeed: 1.6 },
+    { value: '🪱', points: 0, chance: 4, baseSpeed: 1.6 },
     { value: '🎁', points: 0, chance: 1, baseSpeed: 0.64 } // Rarer Mystery Box
 ];
 
@@ -86,8 +86,8 @@ function setupEventListeners() {
         DOM.burnDebtBar.classList.remove('hidden');
         DOM.burnDebtProgress.classList.remove('hidden');
         DOM.progressContainer.classList.remove('hidden');
-        DOM.burnDebtProgress.style.animation = 'none'; // Reset animation
-        setTimeout(() => DOM.burnDebtProgress.style.animation = 'shrink 30s linear forwards', 10); // Restart animation
+        DOM.burnDebtProgress.style.animation = 'none';
+        setTimeout(() => DOM.burnDebtProgress.style.animation = 'shrink 30s linear forwards', 10);
         burnDebtTimeout = setTimeout(() => {
             multiplier = 1;
             DOM.burnDebtBar.classList.add('hidden');
@@ -104,8 +104,8 @@ function setupEventListeners() {
         DOM.supercollateralBar.classList.remove('hidden');
         DOM.supercollateralProgress.classList.remove('hidden');
         DOM.progressContainer.classList.remove('hidden');
-        DOM.supercollateralProgress.style.animation = 'none'; // Reset animation
-        setTimeout(() => DOM.supercollateralProgress.style.animation = 'shrink 30s linear forwards', 10); // Restart animation
+        DOM.supercollateralProgress.style.animation = 'none';
+        setTimeout(() => DOM.supercollateralProgress.style.animation = 'shrink 30s linear forwards', 10);
         supercollateralTimeout = setTimeout(() => {
             shield = false;
             DOM.basket.classList.remove('shielded');
@@ -260,16 +260,24 @@ function endGame() {
     gameActive = false;
     const username = DOM.playerName.textContent;
     allTimeScores.push({ username, score });
+    
+    // Ensure dailyScores.scores is an array before slicing
+    if (!dailyScores.scores || !Array.isArray(dailyScores.scores)) {
+        console.error("dailyScores.scores is not an array:", dailyScores.scores);
+        dailyScores.scores = []; // Initialize as empty array if invalid
+    }
     dailyScores.scores.push({ username, score });
+    
     allTimeScores.sort((a, b) => b.score - a.score);
     dailyScores.scores.sort((a, b) => b.score - a.score);
     allTimeScores = allTimeScores.slice(0, 10);
-    dailyScores.scores = dailyScores.slice(0, 10);
+    dailyScores.scores = dailyScores.scores.slice(0, 10);
+    
     localStorage.setItem('suprGrowthScores', JSON.stringify(allTimeScores));
     localStorage.setItem('suprGrowthDailyScores', JSON.stringify(dailyScores));
     DOM.finalScore.textContent = score;
     updateLeaderboard();
-    DOM.gameOverScreen.classList.remove('hidden'); // Explicitly show Game Over popup
+    DOM.gameOverScreen.classList.remove('hidden'); // Show Game Over popup
 }
 
 function resumeGame() {
