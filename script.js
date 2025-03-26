@@ -14,7 +14,7 @@ let isMuted = false;
 let multiplier = 1;
 let shield = false;
 let logoSize = 100;
-let dropInterval = 2000;
+let dropInterval = 1333; // 50% faster than 2000ms
 let scores = JSON.parse(localStorage.getItem('suprGrowthScores')) || [];
 
 const splashScreen = document.getElementById('splash-screen');
@@ -54,8 +54,8 @@ soundToggle.addEventListener('click', () => {
     soundToggle.textContent = isMuted ? '🔇' : '🔊';
 });
 themeToggle.addEventListener('click', () => {
-    document.body.classList.toggle('light-theme');
-    themeToggle.textContent = document.body.classList.contains('light-theme') ? '☀️' : '🌙';
+    document.body.classList.toggle('dark-theme');
+    themeToggle.textContent = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';
 });
 
 burnDebtBtn.addEventListener('click', () => {
@@ -71,7 +71,7 @@ supercollateralBtn.addEventListener('click', () => {
     setTimeout(() => {
         shield = false;
         basket.classList.remove('shielded');
-    }, 20000);
+    }, 30000); // Changed to 30s per request
     resumeGame();
 });
 
@@ -88,11 +88,12 @@ leftPanel.addEventListener('mousemove', (e) => {
     basket.style.left = `${newLeft}px`;
 });
 
-// Ensure popups are hidden on page load
+// Ensure initial state
 document.addEventListener('DOMContentLoaded', () => {
     gameOverScreen.classList.remove('active');
     mysteryPopup.classList.remove('active');
     gameScreen.classList.add('hidden');
+    splashScreen.classList.remove('hidden');
 });
 
 function startGame() {
@@ -103,12 +104,12 @@ function startGame() {
     multiplier = 1;
     shield = false;
     logoSize = 100;
-    dropInterval = 2000;
+    dropInterval = 1333;
 
     splashScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
     gameOverScreen.classList.remove('active');
-    mysteryPopup.classList.remove('active'); // Explicitly hide Mystery Box popup
+    mysteryPopup.classList.remove('active');
     playerName.textContent = username;
     currentScore.textContent = score;
     basket.style.width = `${basketWidth}px`;
@@ -120,7 +121,7 @@ function startGame() {
 function dropLoop() {
     if (!gameActive) return;
     dropItem();
-    setTimeout(dropLoop, Math.random() * dropInterval + 500);
+    setTimeout(dropLoop, Math.random() * dropInterval + 333);
 }
 
 function dropItem() {
@@ -195,12 +196,12 @@ function updateGrowth() {
         superseedLogo.classList.add('wiggle');
         setTimeout(() => superseedLogo.classList.remove('wiggle'), 500);
     }
-    dropInterval = Math.max(1000, 2000 - score / 10);
+    dropInterval = Math.max(666, 1333 - score / 10);
 }
 
 function endGame() {
     gameActive = false;
-    scores.push({ username: playerName.textContent, score });
+    scores.push({ username: playerName.textContent\\'': score });
     scores.sort((a, b) => b.score - a.score);
     scores = scores.slice(0, 5);
     localStorage.setItem('suprGrowthScores', JSON.stringify(scores));
