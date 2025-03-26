@@ -9,28 +9,34 @@
 </head>
 <body class="dark-theme">
     <div id="game-container">
-        <!-- Splash Screen -->
-        <div id="splash-screen">
-            <h1>SUPR Growth</h1>
-            <input type="text" id="username" placeholder="Enter your username" maxlength="20">
-            <button id="start-button">Start Game</button>
-            <div id="legend">
-                <h2>Fill the Basket!</h2>
-                <p>Catch these goodies to grow your $SUPR stash:</p>
-                <ul>
-                    <li>🌱 <strong>Super Sprout</strong> - 50 $SUPR</li>
-                    <li>🌽 <strong>Corn King</strong> - 20 $SUPR</li>
-                    <li>🥕 <strong>Carrot Cash</strong> - 30 $SUPR</li>
-                    <li>💧 <strong>Liquid Loan</strong> - 5 $SUPR (Resizes basket)</li>
-                    <li>🪱 <strong>Worminator</strong> - 0 $SUPR (Game over)</li>
-                    <li>🎁 <strong>Mystery Box</strong> - ? $SUPR (Special effects)</li>
-                </ul>
+        <!-- Landing Page -->
+        <div id="landing-page">
+            <div id="landing-content">
+                <input type="text" id="username" placeholder="Enter your username" maxlength="20">
+                <div id="legend">
+                    <h2>Fill the Basket!</h2>
+                    <p>Catch these goodies to grow your $SUPR stash:</p>
+                    <ul>
+                        <li>🌱 <strong>Super Sprout</strong> - 50 $SUPR</li>
+                        <li>🌽 <strong>Corn King</strong> - 20 $SUPR</li>
+                        <li>🥕 <strong>Carrot Cash</strong> - 30 $SUPR</li>
+                        <li>💧 <strong>Liquid Loan</strong> - 5 $SUPR (Resizes basket)</li>
+                        <li>🪱 <strong>Worminator</strong> - 0 $SUPR (Game over)</li>
+                        <li>🎁 <strong>Mystery Box</strong> - ? $SUPR (Special effects)</li>
+                    </ul>
+                </div>
+                <img src="logo.png" alt="SUPR Growth Logo" id="game-logo">
+                <button id="start-game-button">Start the Game</button>
             </div>
         </div>
 
         <!-- Game Screen -->
         <div id="game-screen" class="hidden">
             <div id="left-panel">
+                <div id="progress-container" class="hidden">
+                    <div id="supercollateral-progress" class="progress-bar hidden"></div>
+                    <div id="burn-debt-progress" class="progress-bar hidden"></div>
+                </div>
                 <div id="basket"></div>
             </div>
             <div id="right-panel">
@@ -51,7 +57,6 @@
                             <ul id="all-time-list"></ul>
                         </div>
                     </div>
-                    <button id="reset-all-time" class="hidden">Reset All-Time</button>
                 </div>
             </div>
             <button id="pause-button">⏸️</button>
@@ -59,7 +64,7 @@
 
         <!-- Game Over Popup -->
         <div id="game-over" class="hidden">
-            <div id="game-over-content">
+            Chapman<div id="game-over-content">
                 <h2><strong>Game Over!</strong></h2>
                 <p>Your $SUPR: <span id="final-score"></span></p>
                 <button id="reset-button">Play Again</button>
