@@ -85,12 +85,17 @@ body:not(.dark-theme) {
 
 #left-panel {
     width: 70%;
-    background: #91D3D1; /* Fixed color for both themes */
+    background: linear-gradient(180deg, #2c3e50 0%, #333 20%); /* Dark theme */
     position: relative;
+}
+
+body:not(.dark-theme) #left-panel {
+    background: linear-gradient(180deg, #87CEEB 0%, #FFF 20%); /* Light theme */
 }
 
 #right-panel {
     width: 30%;
+    background: #91D3D1; /* Fixed color for both themes */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -173,6 +178,7 @@ body:not(.dark-theme) #basket {
     border-radius: 5px;
     color: #fff;
     text-align: center;
+    width: 100%;
 }
 
 body:not(.dark-theme) #leaderboard {
@@ -180,10 +186,21 @@ body:not(.dark-theme) #leaderboard {
     color: #000;
 }
 
+#rankings-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+#daily-rankings, #all-time-rankings {
+    width: 48%;
+}
+
 #leaderboard ul {
     list-style: none;
     padding: 0;
     margin: 5px 0;
+    font-size: 0.9em;
 }
 
 #leaderboard h3 {
@@ -242,8 +259,8 @@ body:not(.dark-theme) #game-over-content {
     color: #fff;
     width: 400px;
     max-width: 90%;
-    border: 2px solid #91D3D1; /* Updated border color */
-    box-shadow: 0 0 10px rgba(145, 211, 209, 0.5); /* Adjusted glow */
+    border: 2px solid #91D3D1;
+    box-shadow: 0 0 10px rgba(145, 211, 209, 0.5);
 }
 
 #mystery-content h2 {
