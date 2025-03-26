@@ -3,7 +3,7 @@ let username = '';
 let score = 0;
 let growthStage = 0;
 let gameActive = false;
-let dropSpeed = 3000; // Starting speed in ms
+let dropSpeed = 3000;
 let doubleGrowth = false;
 let basketWidth = 100;
 let basketDoubles = 0;
@@ -14,9 +14,9 @@ let pointMultiplier = 1;
 let isShielded = false;
 let shieldStartTime = 0;
 let multiplierStartTime = 0;
-const EFFECT_DURATION = 30000; // 30 seconds in milliseconds
-const MAX_SCORE_FOR_GROWTH = 6000; // Max score for logo growth
-const MAX_LOGO_SIZE = 1200; // Max logo size in px
+const EFFECT_DURATION = 30000;
+const MAX_SCORE_FOR_GROWTH = 6000;
+const MAX_LOGO_SIZE = 1200;
 
 // DOM elements
 const splashScreen = document.getElementById('splash-screen');
@@ -50,15 +50,17 @@ const soundCarrot = document.getElementById('sound-carrot');
 const soundWater = document.getElementById('sound-water');
 const soundWorm = document.getElementById('sound-worm');
 const soundMystery = document.getElementById('sound-mystery');
+const soundTheSeed = document.getElementById('sound-theseed');
 
 // Item types
 const itemTypes = [
-    { emoji: '🌱', points: 50 },
-    { emoji: '🌽', points: 20 },
-    { emoji: '🥕', points: 30 },
-    { emoji: '💧', points: 5 },
-    { emoji: '🪱', points: 0 },
-    { emoji: '🎁', points: 0 }
+    { emoji: '🌱', points: 50 }, // Super Sprout
+    { emoji: '🌽', points: 20 }, // Corn King
+    { emoji: '🥕', points: 30 }, // Carrot Cash
+    { emoji: '💧', points: 5 },  // Liquid Loan
+    { emoji: '🪱', points: 0 },  // Worminator
+    { emoji: '🎁', points: 0 },  // Mystery Box
+    { id: 'theseed', points: 150 } // Mega Seed Blaster (PNG)
 ];
 
 // Theme toggle
@@ -136,25 +138,37 @@ function startGame() {
 function dropItems() {
     if (!gameActive) return;
 
-    // Adjusted probabilities: Worm increased by 1.5x (0.10 → 0.15)
-    const probabilities = [0.22, 0.30, 0.25, 0.10, 0.15, 0.03];
+    const probabilities = [0.1941, 0.2647, 0.2206, 0.0882, 0.1324, 0.05, 0.05];
     const random = Math.random();
     let itemType;
-    if (random < probabilities[0]) itemType = itemTypes[0]; // 🌱
-    else if (random < probabilities[0] + probabilities[1]) itemType = itemTypes[1]; // 🌽
-    else if (random < probabilities[0] + probabilities[1] + probabilities[2]) itemType = itemTypes[2]; // 🥕
-    else if (random < probabilities[0] + probabilities[1] + probabilities[2] + probabilities[3]) itemType = itemTypes[3]; // 💧
-    else if (random < probabilities[0] + probabilities[1] + probabilities[2] + probabilities[3] + probabilities[4]) itemType = itemTypes[4]; // 🪱
-    else itemType = itemTypes[5]; // 🎁
+    if (random < probabilities[0]) itemType = itemTypes[0]; // 🌱 Super Sprout
+    else if (random < probabilities[0] + probabilities[1]) itemType = itemTypes[1]; // 🌽 Corn King
+    else if (random < probabilities[0] + probabilities[1] + probabilities[2]) itemType = itemTypes[2]; // 🥕 Carrot Cash
+    else if (random < probabilities[0] + probabilities[1] + probabilities[2] + probabilities[3]) itemType = itemTypes[3]; // 💧 Liquid Loan
+    else if (random < probabilities[0] + probabilities[1] + probabilities[2] + probabilities[3] + probabilities[4]) itemType = itemTypes[4]; // 🪱 Worminator
+    else if (random < probabilities[0] + probabilities[1] + probabilities[2] + probabilities[3] + probabilities[4] + probabilities[5]) itemType = itemTypes[5]; // 🎁 Mystery Box
+    else itemType = itemTypes[6]; // theseed Mega Seed Blaster
 
     const item = document.createElement('div');
-    item.classList.add('falling-item');
-    item.textContent = itemType.emoji;
+    if (itemType.id === 'theseed') {
+        item.classList.add('falling-image');
+        const img = document.createElement('img');
+        img.src = 'theseed.png';
+        img.alt = 'Mega Seed Blaster';
+        item.appendChild(img);
+    } else {
+        item.classList.add('falling-item');
+        item.textContent = itemType.emoji;
+    }
     item.style.left = `${Math.random() * (leftPanel.offsetWidth - 50)}px`;
     item.style.top = '0px';
     leftPanel.appendChild(item);
 
-    const fallDuration = dropSpeed / 1000;
+    // Adjust fall speed: Mega Seed Blaster 2x, Worminator 1.5x
+    let itemFallSpeed = dropSpeed;
+    if (itemType.id === 'theseed') itemFallSpeed = dropSpeed / 2; // 2x faster
+    else if (itemType.emoji === '🪱') itemFallSpeed = dropSpeed / 1.5; // 1.5x faster
+    const fallDuration = itemFallSpeed / 1000;
     item.style.transition = `top ${fallDuration}s`;
     item.style.top = `${leftPanel.offsetHeight}px`;
 
@@ -188,6 +202,7 @@ function handleCatch(itemType) {
             if (itemType.emoji === '🌱') soundSeed.play();
             else if (itemType.emoji === '🌽') soundCorn.play();
             else if (itemType.emoji === '🥕') soundCarrot.play();
+            else if (itemType.id === 'theseed') soundTheSeed.play(); // Mega Seed Blaster sound
         }
         updateGrowth();
     } else if (itemType.emoji === '💧') {
@@ -282,12 +297,11 @@ function updateMultiplier() {
 
 // Update growth
 function updateGrowth() {
-    // Logo size: Linear growth from 100px to 1200px over 0 to 6000 points
     let newSize;
     if (score <= MAX_SCORE_FOR_GROWTH) {
         newSize = 100 + (score / MAX_SCORE_FOR_GROWTH) * (MAX_LOGO_SIZE - 100);
     } else {
-        newSize = MAX_LOGO_SIZE; // Cap at 1200px
+        newSize = MAX_LOGO_SIZE;
     }
 
     if (newSize !== logoSize || score > MAX_SCORE_FOR_GROWTH) {
@@ -297,7 +311,6 @@ function updateGrowth() {
         setTimeout(() => superseedLogo.classList.remove('wiggle'), 500);
     }
 
-    // Speed increase: 10% faster (dropSpeed *= 0.9) every 500 points
     const speedSteps = Math.floor(score / 500);
     dropSpeed = Math.max(200, 3000 * Math.pow(0.9, speedSteps));
 }
