@@ -1,115 +1,284 @@
-/* General Styles */
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Raleway', sans-serif;
-    font-weight: 900;
-    height: 100vh;
-    overflow: hidden;
-    background: #212121;
-    transition: background 0.3s ease;
+// Game Data
+const ITEMS = [
+    { value: '🌱', points: 50, chance: 25, baseSpeed: 0.8 },
+    { value: '🌽', points: 20, chance: 30, baseSpeed: 0.96 },
+    { value: '🥕', points: 30, chance: 20, baseSpeed: 0.72 },
+    { value: '💧', points: 5, chance: 10, baseSpeed: 0.88 },
+    { value: '🪱', points: 0, chance: 10, baseSpeed: 1.6 },
+    { value: '🎁', points: 0, chance: 5, baseSpeed: 0.64 }
+];
+
+// Game State
+let gameActive = false;
+let isPaused = false;
+let score = 0;
+let basketWidth = 100;
+let isMuted = false;
+let multiplier = 1;
+let shield = false;
+let logoSize = 100;
+let dropInterval = 2000;
+let speedMultiplier = 1;
+let allTimeScores = JSON.parse(localStorage.getItem('suprGrowthScores')) || [];
+let dailyScores = JSON.parse(localStorage.getItem('suprGrowthDailyScores')) || { date: null, scores: [] };
+
+// DOM Elements
+const DOM = {
+    landingPage: document.getElementById('landing-page'),
+    gameScreen: document.getElementById('game-screen'),
+    startGameButton: document.getElementById('start-game-button'),
+    usernameInput: document.getElementById('username'),
+    playerName: document.getElementById('player-name'),
+    currentScore: document.getElementById('current-score'),
+    superseedLogo: document.getElementById('superseed-logo'),
+    basket: document.getElementById('basket'),
+    leftPanel: document.getElementById('left-panel'),
+    allTimeList: document.getElementById('all-time-list'),
+    dailyList: document.getElementById('daily-list'),
+    gameOverScreen: document.getElementById('game-over'),
+    finalScore: document.getElementById('final-score'),
+    resetButton: document.getElementById('reset-button'),
+    mysteryPopup: document.getElementById('mystery-popup'),
+    burnDebtBtn: document.getElementById('burn-debt'),
+    supercollateralBtn: document.getElementById('supercollateral'),
+    proofRepaymentBtn: document.getElementById('proof-repayment'),
+    soundToggle: document.getElementById('sound-toggle'),
+    themeToggle: document.getElementById('theme-toggle'),
+    pauseButton: document.getElementById('pause-button'),
+    burnDebtBar: document.getElementById('burn-debt-bar'),
+    supercollateralBar: document.getElementById('supercollateral-bar'),
+    progressContainer: document.getElementById('progress-container'),
+    supercollateralProgress: document.getElementById('supercollateral-progress'),
+    burnDebtProgress: document.getElementById('burn-debt-progress')
+};
+
+// Audio Elements
+const SOUNDS = {
+    seed: document.getElementById('sound-seed'),
+    corn: document.getElementById('sound-corn'),
+    carrot: document.getElementById('sound-carrot'),
+    water: document.getElementById('sound-water'),
+    worm: document.getElementById('sound-worm'),
+    mystery: document.getElementById('sound-mystery')
+};
+
+// Event Listeners
+function setupEventListeners() {
+    DOM.startGameButton.addEventListener('click', startGame);
+    DOM.resetButton.addEventListener('click', startGame);
+    DOM.soundToggle.addEventListener('click', () => {
+        isMuted = !isMuted;
+        DOM.soundToggle.textContent = isMuted ? '🔇' : '🔊';
+    });
+    DOM.themeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark-theme');
+        DOM.themeToggle.textContent = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';
+    });
+    DOM.burnDebtBtn.addEventListener('click', () => {
+        score = Math.floor(score * 0.75);
+        multiplier = 2;
+        DOM.burnDebtBar.classList.add('active');
+        DOM.burnDebtProgress.classList.remove('hidden');
+        DOM.progressContainer.classList.remove('hidden');
+        setTimeout(() => {
+            multiplier = 1;
+            DOM.burnDebtBar.classList.remove('active');
+            DOM.burnDebtProgress.classList.add('hidden');
+            if (!shield) DOM.progressContainer.classList.add('hidden');
+        }, 30000);
+        resumeGame();
+    });
+    DOM.supercollateralBtn.addEventListener('click', () => {
+        shield = true;
+        DOM.basket.classList.add('shielded');
+        DOM.supercollateralBar.classList.add('active');
+        DOM.supercollateralProgress.classList.remove('hidden');
+        DOM.progressContainer.classList.remove('hidden');
+        setTimeout(() => {
+            shield = false;
+            DOM.basket.classList.remove('shielded');
+            DOM.supercollateralBar.classList.remove('active');
+            DOM.supercollateralProgress.classList.add('hidden');
+            if (multiplier === 1) DOM.progressContainer.classList.add('hidden');
+        }, 30000);
+        resumeGame();
+    });
+    DOM.proofRepaymentBtn.addEventListener('click', () => {
+        score = Math.random() < 0.6 ? score * 2 : Math.floor(score / 2);
+        resumeGame();
+    });
+    DOM.leftPanel.addEventListener('mousemove', (e) => {
+        if (!gameActive || isPaused) return;
+        const panelWidth = DOM.leftPanel.offsetWidth;
+        let newLeft = e.clientX - DOM.leftPanel.getBoundingClientRect().left - basketWidth / 2;
+        newLeft = Math.max(0, Math.min(newLeft, panelWidth - basketWidth));
+        DOM.basket.style.left = `${newLeft}px`;
+        DOM.progressContainer.style.left = `${newLeft + basketWidth / 2}px`;
+    });
+    DOM.pauseButton.addEventListener('click', togglePause);
 }
 
-body:not(.dark-theme) {
-    background: #91D3D1;
+// Initialization
+document.addEventListener('DOMContentLoaded', () => {
+    DOM.gameOverScreen.classList.remove('active');
+    DOM.mysteryPopup.classList.remove('active');
+    DOM.gameScreen.classList.add('hidden');
+    DOM.landingPage.classList.remove('hidden');
+    checkDailyReset();
+    updateLeaderboard();
+    setupEventListeners();
+});
+
+// Game Logic
+function startGame() {
+    const username = DOM.usernameInput.value.trim() || 'Player';
+    gameActive = true;
+    isPaused = false;
+    score = 0;
+    basketWidth = 100;
+    multiplier = 1;
+    shield = false;
+    logoSize = 100;
+    dropInterval = 2000;
+    speedMultiplier = 1;
+    DOM.landingPage.classList.add('hidden');
+    DOM.gameScreen.classList.remove('hidden');
+    DOM.gameOverScreen.classList.remove('active');
+    DOM.mysteryPopup.classList.remove('active');
+    DOM.progressContainer.classList.add('hidden');
+    DOM.playerName.textContent = username;
+    DOM.currentScore.textContent = score;
+    DOM.basket.style.width = `${basketWidth}px`;
+    DOM.superseedLogo.style.width = `${logoSize}px`;
+    DOM.pauseButton.textContent = '⏸️';
+    updateLeaderboard();
+    dropLoop();
 }
 
-.hidden {
-    display: none;
+function dropLoop() {
+    if (!gameActive || isPaused) return;
+    const numItems = 5 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < numItems; i++) dropItem();
+    setTimeout(dropLoop, Math.random() * dropInterval + 500);
 }
 
-#game-container {
-    width: 100vw;
-    height: 100vh;
-    position: relative;
+function dropItem() {
+    const totalChance = ITEMS.reduce((sum, item) => sum + item.chance, 0);
+    const random = Math.random() * totalChance;
+    let cumulative = 0;
+    const item = ITEMS.find(i => { cumulative += i.chance; return random < cumulative; });
+    const randomFactor = 0.8 + Math.random() * 0.4;
+    const speed = item.baseSpeed * randomFactor * speedMultiplier;
+    const elem = document.createElement('div');
+    elem.classList.add('falling-item');
+    elem.textContent = item.value;
+    const left = Math.random() * (DOM.leftPanel.offsetWidth - 50);
+    elem.style.left = `${left}px`;
+    elem.style.top = '0px';
+    DOM.leftPanel.appendChild(elem);
+    const duration = dropInterval / speed / 1000;
+    elem.style.transition = `top ${duration}s linear`;
+    elem.style.top = `${DOM.leftPanel.offsetHeight}px`;
+    const collisionCheck = setInterval(() => {
+        if (!gameActive || isPaused) return;
+        const basketRect = DOM.basket.getBoundingClientRect();
+        const itemRect = elem.getBoundingClientRect();
+        if (itemRect.left < basketRect.right && itemRect.right > basketRect.left &&
+            itemRect.bottom > basketRect.top && itemRect.top < basketRect.bottom) {
+            handleCatch(item, elem);
+            elem.remove();
+            clearInterval(collisionCheck);
+        }
+    }, 16);
+    setTimeout(() => { if (elem.parentNode) elem.remove(); clearInterval(collisionCheck); }, duration * 1000);
 }
 
-/* Splash Screen */
-#splash-screen {
-    text-align: center;
-    color: #fff;
-    padding: 20px;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 10;
+function handleCatch(item, elem) {
+    if (item.value === '🌱' || item.value === '🌽' || item.value === '🥕') {
+        score += item.points * multiplier;
+        if (!isMuted) SOUNDS[item.value === '🌱' ? 'seed' : item.value === '🌽' ? 'corn' : 'carrot'].play();
+    } else if (item.value === '💧') {
+        score += item.points * multiplier;
+        basketWidth = 100 + Math.random() * 500;
+        DOM.basket.style.width = `${basketWidth}px`;
+        DOM.progressContainer.style.width = `${basketWidth}px`;
+        if (!isMuted) SOUNDS.water.play();
+    } else if (item.value === '🪱') {
+        if (shield) return;
+        if (!isMuted) SOUNDS.worm.play();
+        DOM.basket.classList.add('destroyed');
+        setTimeout(() => {
+            DOM.basket.classList.remove('destroyed');
+            endGame();
+        }, 500);
+    } else if (item.value === '🎁') {
+        gameActive = false;
+        DOM.basket.classList.add('wiggle');
+        DOM.mysteryPopup.classList.add('active');
+        if (!isMuted) SOUNDS.mystery.play();
+        setTimeout(() => DOM.basket.classList.remove('wiggle'), 500);
+    }
+    DOM.currentScore.textContent = score;
+    updateGrowth();
 }
 
-#splash-screen h1 { font-size: 3em; margin-bottom: 20px; }
-#username { padding: 10px; font-size: 1.2em; border-radius: 5px; border: none; margin-bottom: 20px; }
-#start-button { padding: 15px 30px; font-size: 1.5em; background: #FFD700; border: none; border-radius: 5px; cursor: pointer; }
-#start-button:hover { background: #FFA500; }
-#legend { background: rgba(255, 255, 255, 0.9); padding: 15px; border-radius: 10px; max-width: 600px; margin: 20px auto; color: #333; }
-#legend ul { list-style: none; padding: 0; font-weight: 400; font-size: 1em; }
-
-/* Game Screen */
-#game-screen { display: flex; height: 100%; }
-#left-panel { width: 70%; background: #212121; position: relative; }
-body:not(.dark-theme) #left-panel { background: linear-gradient(180deg, #91D3D1 20%, #FFF 100%); }
-#right-panel { width: 30%; background: #91D3D1; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-#player-name { font-size: 2em; color: #fff; }
-body:not(.dark-theme) #player-name { color: #000; }
-#score-display { font-size: 2em; color: #fff; margin: 20px 0; }
-body:not(.dark-theme) #score-display { color: #000; }
-#growth-display { flex-grow: 1; display: flex; align-items: center; }
-
-/* Basket and Falling Items */
-#basket {
-    width: 100px;
-    height: 30px;
-    background: #303030;
-    border-radius: 0 0 50px 50px;
-    position: absolute;
-    bottom: 20px;
-    left: 0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    border: 2px solid #FFFFFF;
+function updateGrowth() {
+    let newSize = logoSize;
+    if (score <= 6000) {
+        newSize = 100 * (1 + 0.3 * Math.floor(score / 500));
+    }
+    if (score > 6000 && score % 500 < 50) {
+        DOM.superseedLogo.classList.add('wiggle');
+        setTimeout(() => DOM.superseedLogo.classList.remove('wiggle'), 500);
+    }
+    if (newSize !== logoSize) {
+        logoSize = newSize;
+        DOM.superseedLogo.style.width = `${logoSize}px`;
+        DOM.superseedLogo.classList.add('wiggle');
+        setTimeout(() => DOM.superseedLogo.classList.remove('wiggle'), 500);
+    }
+    speedMultiplier = 1 + Math.floor(score / 500) * 0.15;
 }
 
-body:not(.dark-theme) #basket { background: #8B4513; border: 2px solid #FFD700; }
-#basket.shielded { box-shadow: 0 0 15px #91d3d1; }
-.falling-item { position: absolute; font-size: 5.2em; transition: top linear; }
+function endGame() {
+    gameActive = false;
+    const username = DOM.playerName.textContent;
+    allTimeScores.push({ username, score });
+    dailyScores.scores.push({ username, score });
+    allTimeScores.sort((a, b) => b.score - a.score);
+    dailyScores.scores.sort((a, b) => b.score - a.score);
+    allTimeScores = allTimeScores.slice(0, 10);
+    dailyScores.scores = dailyScores.scores.slice(0, 10);
+    localStorage.setItem('suprGrowthScores', JSON.stringify(allTimeScores));
+    localStorage.setItem('suprGrowthDailyScores', JSON.stringify(dailyScores));
+    DOM.finalScore.textContent = score;
+    updateLeaderboard();
+    DOM.gameOverScreen.classList.remove('hidden');
+    DOM.gameOverScreen.classList.add('active');
+}
 
-/* Animations */
-@keyframes wiggle { 0% { transform: scale(1); } 25% { transform: scale(1.1) rotate(5deg); } 50% { transform: scale(1.1) rotate(-5deg); } 75% { transform: scale(1.1) rotate(5deg); } 100% { transform: scale(1); } }
-@keyframes basket-wiggle { 0% { transform: translateX(0); } 25% { transform: translateX(-10px); } 50% { transform: translateX(10px); } 75% { transform: translateX(-10px); } 100% { transform: translateX(0); } }
-@keyframes destroy { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(0); opacity: 0; } }
-#superseed-logo { width: 100px; transition: width 0.3s ease; }
-#superseed-logo.wiggle { animation: wiggle 0.5s ease-in-out; }
-#basket.wiggle { animation: basket-wiggle 0.5s ease-in-out; }
-#basket.destroyed { animation: destroy 0.5s ease-out forwards; }
+function resumeGame() {
+    DOM.mysteryPopup.classList.remove('active');
+    gameActive = true;
+    if (!isPaused) dropLoop();
+}
 
-/* Leaderboard */
-#leaderboard { background: rgba(255, 255, 255, 0.2); padding: 10px; border-radius: 5px; color: #fff; text-align: center; width: 100%; }
-body:not(.dark-theme) #leaderboard { background: rgba(255, 255, 255, 0.8); color: #000; }
-#rankings-container { display: flex; justify-content: space-between; width: 100%; }
-#daily-rankings, #all-time-rankings { width: 48%; }
-#leaderboard ul { list-style: none; padding: 0; margin: 5px 0; font-size: 0.9em; }
-#leaderboard h3 { font-size: 1.2em; margin: 10px 0 5px; }
-#reset-all-time { margin-top: 10px; padding: 5px 10px; background: #FF6347; border: none; border-radius: 5px; color: #fff; cursor: pointer; }
-#reset-all-time:hover { background: #FF4500; }
+function togglePause() {
+    if (!gameActive) return;
+    isPaused = !isPaused;
+    DOM.pauseButton.textContent = isPaused ? '▶️' : '⏸️';
+    if (!isPaused) dropLoop();
+}
 
-/* Popups */
-#game-over, #mystery-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; }
-#game-over.active, #mystery-popup.active { display: flex; justify-content: center; align-items: center; }
-#game-over-content, #mystery-content { background: #222; padding: 20px; border-radius: 10px; text-align: center; color: #fff; width: 400px; max-width: 90%; border: 2px solid #91D3D1; box-shadow: 0 0 10px rgba(145, 211, 209, 0.5); }
-#game-over-content h2, #mystery-content h2 { font-size: 1.8em; margin-bottom: 15px; }
-#game-over-content p, #mystery-content p { font-weight: 400; margin: 10px 0; font-size: 1.1em; }
-.mystery-option { margin: 15px 0; }
-.mystery-option button { width: 100%; padding: 12px; background: #FFD700; border: none; border-radius: 5px; font-size: 1.2em; font-weight: 900; cursor: pointer; transition: background 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 10px; }
-.mystery-option button .icon { font-size: 1.3em; }
-.mystery-option button:hover { background: #FFA500; }
-.mystery-option p { font-weight: 400; font-size: 0.9em; margin-top: 5px; color: #ddd; }
-.progress-bar { width: 100%; height: 5px; background: #555; margin-top: 5px; border-radius: 3px; overflow: hidden; }
-.progress-bar::after { content: ''; display: block; width: 100%; height: 100%; background: #91D3D1; transform: scaleX(1); transform-origin: left; transition: transform 30s linear; }
-.progress-bar.active::after { transform: scaleX(0); }
-#reset-button { padding: 10px 20px; background: #FFD700; border: none; border-radius: 5px; cursor: pointer; }
-#reset-button:hover { background: #FFA500; }
+function updateLeaderboard() {
+    DOM.allTimeList.innerHTML = allTimeScores.map(s => `<li>${s.username}: ${s.score}</li>`).join('');
+    DOM.dailyList.innerHTML = dailyScores.scores.map(s => `<li>${s.username}: ${s.score}</li>`).join('');
+}
 
-/* Buttons */
-#sound-toggle, #theme-toggle, #pause-button { position: fixed; bottom: 20px; right: 20px; padding: 10px; font-size: 1.5em; background: #212121; color: #fff; border: none; border-radius: 50%; cursor: pointer; }
-#sound-toggle { bottom: 70px; }
-#pause-button { bottom: 120px; }
+function checkDailyReset() {
+    const today = new Date('2025-03-26').toDateString();
+    if (!dailyScores.date || dailyScores.date !== today) {
+        dailyScores = { date: today, scores: [] };
+        localStorage.setItem('suprGrowthDailyScores', JSON.stringify(dailyScores));
+    }
+}
