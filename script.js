@@ -3,7 +3,7 @@ let username = '';
 let score = 0;
 let growthStage = 0;
 let gameActive = false;
-let dropSpeed = 3000;
+let dropSpeed = 3000; // Starting speed in ms
 let doubleGrowth = false;
 let basketWidth = 100;
 let basketDoubles = 0;
@@ -12,8 +12,11 @@ let logoSize = 100;
 let isMuted = false;
 let pointMultiplier = 1;
 let isShielded = false;
-let shieldTime = 0;
-let multiplierTime = 0;
+let shieldStartTime = 0;
+let multiplierStartTime = 0;
+const EFFECT_DURATION = 30000; // 30 seconds in milliseconds
+const MAX_SCORE_FOR_GROWTH = 6000; // Max score for logo growth
+const MAX_LOGO_SIZE = 1200; // Max logo size in px
 
 // DOM elements
 const splashScreen = document.getElementById('splash-screen');
@@ -108,8 +111,8 @@ function startGame() {
     basketDoubles = 0;
     pointMultiplier = 1;
     isShielded = false;
-    shieldTime = 0;
-    multiplierTime = 0;
+    shieldStartTime = 0;
+    multiplierStartTime = 0;
     basket.style.width = `${basketWidth}px`;
     basket.classList.remove('wiggle', 'destroy', 'shielded');
     shieldBar.classList.add('hidden');
@@ -133,15 +136,16 @@ function startGame() {
 function dropItems() {
     if (!gameActive) return;
 
-    const probabilities = [0.22, 0.30, 0.25, 0.10, 0.10, 0.03];
+    // Adjusted probabilities: Worm increased by 1.5x (0.10 → 0.15)
+    const probabilities = [0.22, 0.30, 0.25, 0.10, 0.15, 0.03];
     const random = Math.random();
     let itemType;
-    if (random < probabilities[0]) itemType = itemTypes[0];
-    else if (random < probabilities[0] + probabilities[1]) itemType = itemTypes[1];
-    else if (random < probabilities[0] + probabilities[1] + probabilities[2]) itemType = itemTypes[2];
-    else if (random < probabilities[0] + probabilities[1] + probabilities[2] + probabilities[3]) itemType = itemTypes[3];
-    else if (random < probabilities[0] + probabilities[1] + probabilities[2] + probabilities[3] + probabilities[4]) itemType = itemTypes[4];
-    else itemType = itemTypes[5];
+    if (random < probabilities[0]) itemType = itemTypes[0]; // 🌱
+    else if (random < probabilities[0] + probabilities[1]) itemType = itemTypes[1]; // 🌽
+    else if (random < probabilities[0] + probabilities[1] + probabilities[2]) itemType = itemTypes[2]; // 🥕
+    else if (random < probabilities[0] + probabilities[1] + probabilities[2] + probabilities[3]) itemType = itemTypes[3]; // 💧
+    else if (random < probabilities[0] + probabilities[1] + probabilities[2] + probabilities[3] + probabilities[4]) itemType = itemTypes[4]; // 🪱
+    else itemType = itemTypes[5]; // 🎁
 
     const item = document.createElement('div');
     item.classList.add('falling-item');
@@ -215,7 +219,7 @@ function handleCatch(itemType) {
 burnDebtBtn.addEventListener('click', () => {
     score = Math.floor(score * 0.75);
     pointMultiplier = 2;
-    multiplierTime = 300; // 30 seconds (300 ticks at 100ms)
+    multiplierStartTime = Date.now();
     multiplierBar.classList.remove('hidden');
     multiplierBar.style.width = '100%';
     resumeGame();
@@ -223,7 +227,7 @@ burnDebtBtn.addEventListener('click', () => {
 
 supercollateralBtn.addEventListener('click', () => {
     isShielded = true;
-    shieldTime = 300; // 30 seconds (300 ticks at 100ms)
+    shieldStartTime = Date.now();
     basket.classList.add('shielded');
     shieldBar.classList.remove('hidden');
     shieldBar.style.width = '100%';
@@ -251,43 +255,51 @@ function resumeGame() {
 
 // Shield countdown
 function updateShield() {
-    if (!isShielded || shieldTime <= 0) {
+    if (!isShielded || shieldStartTime === 0) return;
+    const elapsed = Date.now() - shieldStartTime;
+    const remaining = Math.max(0, EFFECT_DURATION - elapsed);
+    shieldBar.style.width = `${(remaining / EFFECT_DURATION) * 100}%`;
+    if (remaining <= 0) {
         isShielded = false;
         basket.classList.remove('shielded');
         shieldBar.classList.add('hidden');
-        return;
+        shieldStartTime = 0;
     }
-    shieldTime--;
-    shieldBar.style.width = `${(shieldTime / 300) * 100}%`; // 300 ticks = 30s
 }
 
 // Multiplier countdown
 function updateMultiplier() {
-    if (multiplierTime <= 0) {
+    if (multiplierStartTime === 0) return;
+    const elapsed = Date.now() - multiplierStartTime;
+    const remaining = Math.max(0, EFFECT_DURATION - elapsed);
+    multiplierBar.style.width = `${(remaining / EFFECT_DURATION) * 100}%`;
+    if (remaining <= 0) {
         pointMultiplier = 1;
         multiplierBar.classList.add('hidden');
-        return;
+        multiplierStartTime = 0;
     }
-    multiplierTime--;
-    multiplierBar.style.width = `${(multiplierTime / 300) * 100}%`; // 300 ticks = 30s
 }
 
 // Update growth
 function updateGrowth() {
-    const growthSteps = Math.floor(score / 100);
-    const growthFactor = 1 + (growthSteps * 0.2);
-    const newSize = 100 * growthFactor;
+    // Logo size: Linear growth from 100px to 1200px over 0 to 6000 points
+    let newSize;
+    if (score <= MAX_SCORE_FOR_GROWTH) {
+        newSize = 100 + (score / MAX_SCORE_FOR_GROWTH) * (MAX_LOGO_SIZE - 100);
+    } else {
+        newSize = MAX_LOGO_SIZE; // Cap at 1200px
+    }
 
-    if (newSize !== logoSize) {
+    if (newSize !== logoSize || score > MAX_SCORE_FOR_GROWTH) {
         logoSize = newSize;
         superseedLogo.style.width = `${logoSize}px`;
         superseedLogo.classList.add('wiggle');
         setTimeout(() => superseedLogo.classList.remove('wiggle'), 500);
     }
 
-    if (score > 0 && score % 100 === 0) {
-        dropSpeed = Math.max(200, dropSpeed * (score >= 5000 ? 0.85 : 0.9));
-    }
+    // Speed increase: 10% faster (dropSpeed *= 0.9) every 500 points
+    const speedSteps = Math.floor(score / 500);
+    dropSpeed = Math.max(200, 3000 * Math.pow(0.9, speedSteps));
 }
 
 // End game
@@ -342,6 +354,6 @@ function updateGameOverScores() {
 setInterval(() => {
     if (gameActive) {
         if (isShielded) updateShield();
-        if (multiplierTime > 0) updateMultiplier();
+        if (multiplierStartTime > 0) updateMultiplier();
     }
-}, 100); // 100ms per tick
+}, 50);
