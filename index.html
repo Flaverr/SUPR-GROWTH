@@ -18,13 +18,12 @@
                 <h2>Fill the Basket!</h2>
                 <p>Catch these goodies to grow your $SUPR stash:</p>
                 <ul>
-                    <li>🌱 <strong>Super Sprout</strong> - 50 $SUPR: "The tiny titan that started it all!"</li>
-                    <li>🌽 <strong>Corn King</strong> - 20 $SUPR: "Poppin’ profits since day one!"</li>
-                    <li>🥕 <strong>Carrot Cash</strong> - 30 $SUPR: "Orange you glad it’s worth so much?"</li>
-                    <li>💧 <strong>Liquid Loan</strong> - 5 $SUPR: "Randomly resizes your basket!"</li>
-                    <li>🪱 <strong>Worminator</strong> - 0 $SUPR: "Oops! Game over, it ate your gains!"</li>
-                    <li>🎁 <strong>Mystery Box</strong> - ? $SUPR: "Choose your fate—risk or reward?"</li>
-                    <li><img src="theseed.png" alt="Mega Seed Blaster" style="width: 1em; vertical-align: middle;"> <strong>Mega Seed Blaster</strong> - 150 $SUPR: "A supersonic seed with mega rewards!"</li>
+                    <li>🌱 <strong>Super Sprout</strong> - 50 $SUPR</li>
+                    <li>🌽 <strong>Corn King</strong> - 20 $SUPR</li>
+                    <li>🥕 <strong>Carrot Cash</strong> - 30 $SUPR</li>
+                    <li>💧 <strong>Liquid Loan</strong> - 5 $SUPR (Resizes basket)</li>
+                    <li>🪱 <strong>Worminator</strong> - 0 $SUPR (Game over)</li>
+                    <li>🎁 <strong>Mystery Box</strong> - ? $SUPR (Special effects)</li>
                 </ul>
             </div>
         </div>
@@ -32,10 +31,7 @@
         <!-- Game Screen -->
         <div id="game-screen" class="hidden">
             <div id="left-panel">
-                <div id="basket">
-                    <div id="shield-bar" class="hidden"></div>
-                    <div id="multiplier-bar" class="hidden"></div>
-                </div>
+                <div id="basket"></div>
             </div>
             <div id="right-panel">
                 <div id="player-name"></div>
@@ -44,7 +40,7 @@
                     <img src="superseed-logo.png" alt="Superseed Logo" id="superseed-logo">
                 </div>
                 <div id="leaderboard">
-                    <h2>Top $SUPR Farmers</h2>
+                    <h2>Top Farmers</h2>
                     <ul id="score-list"></ul>
                 </div>
             </div>
@@ -54,41 +50,32 @@
         <div id="game-over" class="hidden">
             <div id="game-over-content">
                 <h2>Game Over!</h2>
-                <p>Your $SUPR Harvest: <span id="final-score"></span></p>
-                <h3>Top $SUPR Farmers</h3>
-                <ul id="top-scores-list"></ul>
-                <button id="reset-button">Reset Game</button>
+                <p>Your $SUPR: <span id="final-score"></span></p>
+                <button id="reset-button">Play Again</button>
             </div>
         </div>
 
         <!-- Mystery Box Popup -->
         <div id="mystery-popup" class="hidden">
             <div id="mystery-content">
-                <h2>Mystery Box Opened!</h2>
-                <button id="burn-debt">Burn Debt</button>
-                <p>Sacrifice 25% of your $SUPR for 2× points (30s)!</p>
-                <button id="supercollateral">Supercollateral</button>
-                <p>Shield from Worminator for 20 seconds!</p>
-                <button id="proof-repayment">Proof-of-Repayment</button>
-                <p>60% to double, 40% to halve your $SUPR!</p>
+                <h2>Mystery Box!</h2>
+                <button id="burn-debt">Burn Debt (Lose 25%, 2x points 30s)</button>
+                <button id="supercollateral">Shield (20s)</button>
+                <button id="proof-repayment">Gamble (60% double, 40% half)</button>
             </div>
         </div>
 
-        <!-- Particle Container -->
-        <div id="particles"></div>
-
         <!-- Toggle Buttons -->
-        <button id="sound-toggle" title="Toggle Sound">🔊</button>
-        <button id="theme-toggle" title="Toggle Theme">☀️</button>
+        <button id="sound-toggle">🔊</button>
+        <button id="theme-toggle">☀️</button>
 
-        <!-- Audio Elements -->
+        <!-- Audio -->
         <audio id="sound-seed" src="sounds/seed.mp3" preload="auto"></audio>
         <audio id="sound-corn" src="sounds/corn.mp3" preload="auto"></audio>
         <audio id="sound-carrot" src="sounds/carrot.mp3" preload="auto"></audio>
         <audio id="sound-water" src="sounds/water.mp3" preload="auto"></audio>
         <audio id="sound-worm" src="sounds/worm.mp3" preload="auto"></audio>
         <audio id="sound-mystery" src="sounds/mystery.mp3" preload="auto"></audio>
-        <audio id="sound-theseed" src="sounds/theseed.mp3" preload="auto"></audio>
     </div>
     <script src="script.js"></script>
 </body>
