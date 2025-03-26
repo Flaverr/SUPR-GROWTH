@@ -1,11 +1,11 @@
 // Game Data
 const ITEMS = [
-    { value: '🌱', points: 50, chance: 30, baseSpeed: 0.8 },  // Increased chance to offset Mystery Box reduction
-    { value: '🌽', points: 20, chance: 35, baseSpeed: 0.96 }, // Adjusted for total 100
+    { value: '🌱', points: 50, chance: 30, baseSpeed: 0.8 },
+    { value: '🌽', points: 20, chance: 35, baseSpeed: 0.96 },
     { value: '🥕', points: 30, chance: 25, baseSpeed: 0.72 },
-    { value: '💧', points: 5, chance: 5, baseSpeed: 0.88 },   // Reduced slightly
-    { value: '🪱', points: 0, chance: 4, baseSpeed: 1.6 },    // Reduced slightly
-    { value: '🎁', points: 0, chance: 1, baseSpeed: 0.64 }    // Reduced from 5 to 1 (rarer)
+    { value: '💧', points: 5, chance: 5, baseSpeed: 0.88 },
+    { value: '🪱', points: 0, chance: 4, baseSpeed: 1.6 },
+    { value: '🎁', points: 0, chance: 1, baseSpeed: 0.64 } // Rarer Mystery Box
 ];
 
 // Game State
@@ -21,8 +21,8 @@ let dropInterval = 2000;
 let speedMultiplier = 1;
 let allTimeScores = JSON.parse(localStorage.getItem('suprGrowthScores')) || [];
 let dailyScores = JSON.parse(localStorage.getItem('suprGrowthDailyScores')) || { date: null, scores: [] };
-let burnDebtTimeout = null;  // Track Burn Debt timeout
-let supercollateralTimeout = null;  // Track Supercollateral timeout
+let burnDebtTimeout = null;
+let supercollateralTimeout = null;
 
 // DOM Elements
 const DOM = {
@@ -77,27 +77,28 @@ function setupEventListeners() {
         DOM.themeToggle.textContent = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';
     });
     DOM.burnDebtBtn.addEventListener('click', () => {
-        cancelPreviousEffects(); // Cancel any active effects
+        cancelPreviousEffects();
         score = Math.floor(score * 0.75);
         multiplier = 2;
-        DOM.burnDebtBar.classList.add('active');
+        DOM.burnDebtBar.classList.remove('hidden');
         DOM.burnDebtProgress.classList.remove('hidden');
         DOM.progressContainer.classList.remove('hidden');
         DOM.burnDebtProgress.style.animation = 'none'; // Reset animation
         setTimeout(() => DOM.burnDebtProgress.style.animation = 'shrink 30s linear forwards', 10); // Restart animation
         burnDebtTimeout = setTimeout(() => {
             multiplier = 1;
-            DOM.burnDebtBar.classList.remove('active');
+            DOM.burnDebtBar.classList.add('hidden');
             DOM.burnDebtProgress.classList.add('hidden');
             if (!shield) DOM.progressContainer.classList.add('hidden');
+            burnDebtTimeout = null;
         }, 30000);
         resumeGame();
     });
     DOM.supercollateralBtn.addEventListener('click', () => {
-        cancelPreviousEffects(); // Cancel any active effects
+        cancelPreviousEffects();
         shield = true;
         DOM.basket.classList.add('shielded');
-        DOM.supercollateralBar.classList.add('active');
+        DOM.supercollateralBar.classList.remove('hidden');
         DOM.supercollateralProgress.classList.remove('hidden');
         DOM.progressContainer.classList.remove('hidden');
         DOM.supercollateralProgress.style.animation = 'none'; // Reset animation
@@ -105,14 +106,15 @@ function setupEventListeners() {
         supercollateralTimeout = setTimeout(() => {
             shield = false;
             DOM.basket.classList.remove('shielded');
-            DOM.supercollateralBar.classList.remove('active');
+            DOM.supercollateralBar.classList.add('hidden');
             DOM.supercollateralProgress.classList.add('hidden');
             if (multiplier === 1) DOM.progressContainer.classList.add('hidden');
+            supercollateralTimeout = null;
         }, 30000);
         resumeGame();
     });
     DOM.proofRepaymentBtn.addEventListener('click', () => {
-        cancelPreviousEffects(); // Cancel any active effects
+        cancelPreviousEffects();
         score = Math.random() < 0.6 ? score * 2 : Math.floor(score / 2);
         resumeGame();
     });
@@ -129,10 +131,11 @@ function setupEventListeners() {
 
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
-    DOM.gameOverScreen.classList.remove('active');
-    DOM.mysteryPopup.classList.remove('active');
     DOM.gameScreen.classList.add('hidden');
     DOM.splashScreen.classList.remove('hidden');
+    DOM.gameOverScreen.classList.add('hidden');
+    DOM.mysteryPopup.classList.add('hidden');
+    DOM.progressContainer.classList.add('hidden');
     checkDailyReset();
     updateLeaderboard();
     setupEventListeners();
@@ -150,11 +153,11 @@ function startGame() {
     logoSize = 100;
     dropInterval = 2000;
     speedMultiplier = 1;
-    cancelPreviousEffects(); // Clear any lingering effects
+    cancelPreviousEffects();
     DOM.splashScreen.classList.add('hidden');
     DOM.gameScreen.classList.remove('hidden');
-    DOM.gameOverScreen.classList.remove('active');
-    DOM.mysteryPopup.classList.remove('active');
+    DOM.gameOverScreen.classList.add('hidden');
+    DOM.mysteryPopup.classList.add('hidden');
     DOM.progressContainer.classList.add('hidden');
     DOM.playerName.textContent = username;
     DOM.currentScore.textContent = score;
@@ -224,7 +227,7 @@ function handleCatch(item, elem) {
     } else if (item.value === '🎁') {
         gameActive = false;
         DOM.basket.classList.add('wiggle');
-        DOM.mysteryPopup.classList.add('active');
+        DOM.mysteryPopup.classList.remove('hidden'); // Show Mystery Box popup
         if (!isMuted) SOUNDS.mystery.play();
         setTimeout(() => DOM.basket.classList.remove('wiggle'), 500);
     }
@@ -262,13 +265,12 @@ function endGame() {
     localStorage.setItem('suprGrowthScores', JSON.stringify(allTimeScores));
     localStorage.setItem('suprGrowthDailyScores', JSON.stringify(dailyScores));
     DOM.finalScore.textContent = score;
+    DOM.gameOverScreen.classList.remove('hidden'); // Show Game Over popup
     updateLeaderboard();
-    DOM.gameOverScreen.classList.remove('hidden');
-    DOM.gameOverScreen.classList.add('active');
 }
 
 function resumeGame() {
-    DOM.mysteryPopup.classList.remove('active');
+    DOM.mysteryPopup.classList.add('hidden'); // Hide Mystery Box popup
     gameActive = true;
     if (!isPaused) dropLoop();
 }
@@ -286,7 +288,7 @@ function updateLeaderboard() {
 }
 
 function checkDailyReset() {
-    const today = new Date('2025-03-26').toDateString();
+    const today = new Date('2025-03-26').toDateString(); // Fixed date for consistency
     if (!dailyScores.date || dailyScores.date !== today) {
         dailyScores = { date: today, scores: [] };
         localStorage.setItem('suprGrowthDailyScores', JSON.stringify(dailyScores));
@@ -297,7 +299,7 @@ function cancelPreviousEffects() {
     if (burnDebtTimeout) {
         clearTimeout(burnDebtTimeout);
         multiplier = 1;
-        DOM.burnDebtBar.classList.remove('active');
+        DOM.burnDebtBar.classList.add('hidden');
         DOM.burnDebtProgress.classList.add('hidden');
         burnDebtTimeout = null;
     }
@@ -305,7 +307,7 @@ function cancelPreviousEffects() {
         clearTimeout(supercollateralTimeout);
         shield = false;
         DOM.basket.classList.remove('shielded');
-        DOM.supercollateralBar.classList.remove('active');
+        DOM.supercollateralBar.classList.add('hidden');
         DOM.supercollateralProgress.classList.add('hidden');
         supercollateralTimeout = null;
     }
