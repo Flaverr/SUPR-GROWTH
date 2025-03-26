@@ -1,10 +1,10 @@
 const items = [
-    { value: '🌱', points: 50, chance: 25, speed: 1 },  // Super Sprout
-    { value: '🌽', points: 20, chance: 30, speed: 1 },  // Corn King
-    { value: '🥕', points: 30, chance: 20, speed: 1 },  // Carrot Cash
-    { value: '💧', points: 5, chance: 10, speed: 1 },   // Liquid Loan
-    { value: '🪱', points: 0, chance: 10, speed: 1.5 }, // Worminator
-    { value: '🎁', points: 0, chance: 5, speed: 1 }     // Mystery Box
+    { value: '🌱', points: 50, chance: 25, speed: 1 },    // Super Sprout
+    { value: '🌽', points: 20, chance: 30, speed: 1.4 },  // Corn King (1.4x)
+    { value: '🥕', points: 30, chance: 20, speed: 1 },    // Carrot Cash
+    { value: '💧', points: 5, chance: 10, speed: 2 },     // Liquid Loan (2x)
+    { value: '🪱', points: 0, chance: 10, speed: 2 },     // Worminator (2x)
+    { value: '🎁', points: 0, chance: 5, speed: 1 }       // Mystery Box
 ];
 
 let gameActive = false;
@@ -14,7 +14,7 @@ let isMuted = false;
 let multiplier = 1;
 let shield = false;
 let logoSize = 100;
-let dropInterval = 1333; // 50% faster than 2000ms
+let dropInterval = 666; // Doubled frequency (was 1333ms, now 666ms)
 let scores = JSON.parse(localStorage.getItem('suprGrowthScores')) || [];
 
 const splashScreen = document.getElementById('splash-screen');
@@ -36,6 +36,8 @@ const supercollateralBtn = document.getElementById('supercollateral');
 const proofRepaymentBtn = document.getElementById('proof-repayment');
 const soundToggle = document.getElementById('sound-toggle');
 const themeToggle = document.getElementById('theme-toggle');
+const burnDebtBar = document.getElementById('burn-debt-bar');
+const supercollateralBar = document.getElementById('supercollateral-bar');
 
 const sounds = {
     seed: document.getElementById('sound-seed'),
@@ -61,17 +63,23 @@ themeToggle.addEventListener('click', () => {
 burnDebtBtn.addEventListener('click', () => {
     score = Math.floor(score * 0.75);
     multiplier = 2;
-    setTimeout(() => multiplier = 1, 30000);
+    burnDebtBar.classList.add('active');
+    setTimeout(() => {
+        multiplier = 1;
+        burnDebtBar.classList.remove('active');
+    }, 30000);
     resumeGame();
 });
 
 supercollateralBtn.addEventListener('click', () => {
     shield = true;
     basket.classList.add('shielded');
+    supercollateralBar.classList.add('active');
     setTimeout(() => {
         shield = false;
         basket.classList.remove('shielded');
-    }, 30000); // Changed to 30s per request
+        supercollateralBar.classList.remove('active');
+    }, 30000);
     resumeGame();
 });
 
@@ -104,7 +112,7 @@ function startGame() {
     multiplier = 1;
     shield = false;
     logoSize = 100;
-    dropInterval = 1333;
+    dropInterval = 666;
 
     splashScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
@@ -121,7 +129,7 @@ function startGame() {
 function dropLoop() {
     if (!gameActive) return;
     dropItem();
-    setTimeout(dropLoop, Math.random() * dropInterval + 333);
+    setTimeout(dropLoop, Math.random() * dropInterval + 166); // Adjusted for doubled frequency
 }
 
 function dropItem() {
@@ -172,7 +180,7 @@ function handleCatch(item) {
         }
     } else if (item.value === '💧') {
         score += item.points * multiplier;
-        basketWidth = 100 + Math.random() * 200;
+        basketWidth = 100 + Math.random() * 500; // Increased to 500% (600px max)
         basket.style.width = `${basketWidth}px`;
         if (!isMuted) sounds.water.play();
     } else if (item.value === '🪱') {
@@ -196,12 +204,12 @@ function updateGrowth() {
         superseedLogo.classList.add('wiggle');
         setTimeout(() => superseedLogo.classList.remove('wiggle'), 500);
     }
-    dropInterval = Math.max(666, 1333 - score / 10);
+    dropInterval = Math.max(333, 666 - score / 20); // Adjusted min for doubled frequency
 }
 
 function endGame() {
     gameActive = false;
-    scores.push({ username: playerName.textContent\\'': score });
+    scores.push({ username: playerName.textContent, score });
     scores.sort((a, b) => b.score - a.score);
     scores = scores.slice(0, 5);
     localStorage.setItem('suprGrowthScores', JSON.stringify(scores));
