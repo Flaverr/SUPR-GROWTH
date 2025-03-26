@@ -236,7 +236,14 @@ body {
 
 .falling-item {
     position: absolute;
-    font-size: 4em;
+    font-size: 5.2em;
+    transition: top linear;
+}
+
+.falling-image {
+    position: absolute;
+    width: 5.2em; /* Matches falling-item font-size */
+    height: auto;
     transition: top linear;
 }
 
