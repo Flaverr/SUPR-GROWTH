@@ -35,7 +35,6 @@ const DOM = {
     leftPanel: document.getElementById('left-panel'),
     allTimeList: document.getElementById('all-time-list'),
     dailyList: document.getElementById('daily-list'),
-    resetAllTimeBtn: document.getElementById('reset-all-time'),
     gameOverScreen: document.getElementById('game-over'),
     finalScore: document.getElementById('final-score'),
     resetButton: document.getElementById('reset-button'),
@@ -47,7 +46,10 @@ const DOM = {
     themeToggle: document.getElementById('theme-toggle'),
     pauseButton: document.getElementById('pause-button'),
     burnDebtBar: document.getElementById('burn-debt-bar'),
-    supercollateralBar: document.getElementById('supercollateral-bar')
+    supercollateralBar: document.getElementById('supercollateral-bar'),
+    progressContainer: document.getElementById('progress-container'),
+    supercollateralProgress: document.getElementById('supercollateral-progress'),
+    burnDebtProgress: document.getElementById('burn-debt-progress')
 };
 
 // Audio Elements
@@ -72,23 +74,33 @@ function setupEventListeners() {
         document.body.classList.toggle('dark-theme');
         DOM.themeToggle.textContent = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';
     });
-    DOM.resetAllTimeBtn.addEventListener('click', () => {
-        allTimeScores = [];
-        localStorage.setItem('suprGrowthScores', JSON.stringify(allTimeScores));
-        updateLeaderboard();
-    });
     DOM.burnDebtBtn.addEventListener('click', () => {
         score = Math.floor(score * 0.75);
         multiplier = 2;
         DOM.burnDebtBar.classList.add('active');
-        setTimeout(() => { multiplier = 1; DOM.burnDebtBar.classList.remove('active'); }, 30000);
+        DOM.burnDebtProgress.classList.remove('hidden');
+        DOM.progressContainer.classList.remove('hidden');
+        setTimeout(() => {
+            multiplier = 1;
+            DOM.burnDebtBar.classList.remove('active');
+            DOM.burnDebtProgress.classList.add('hidden');
+            if (!shield) DOM.progressContainer.classList.add('hidden');
+        }, 30000);
         resumeGame();
     });
     DOM.supercollateralBtn.addEventListener('click', () => {
         shield = true;
         DOM.basket.classList.add('shielded');
         DOM.supercollateralBar.classList.add('active');
-        setTimeout(() => { shield = false; DOM.basket.classList.remove('shielded'); DOM.supercollateralBar.classList.remove('active'); }, 30000);
+        DOM.supercollateralProgress.classList.remove('hidden');
+        DOM.progressContainer.classList.remove('hidden');
+        setTimeout(() => {
+            shield = false;
+            DOM.basket.classList.remove('shielded');
+            DOM.supercollateralBar.classList.remove('active');
+            DOM.supercollateralProgress.classList.add('hidden');
+            if (multiplier === 1) DOM.progressContainer.classList.add('hidden');
+        }, 30000);
         resumeGame();
     });
     DOM.proofRepaymentBtn.addEventListener('click', () => {
@@ -101,6 +113,7 @@ function setupEventListeners() {
         let newLeft = e.clientX - DOM.leftPanel.getBoundingClientRect().left - basketWidth / 2;
         newLeft = Math.max(0, Math.min(newLeft, panelWidth - basketWidth));
         DOM.basket.style.left = `${newLeft}px`;
+        DOM.progressContainer.style.left = `${newLeft + basketWidth / 2}px`; // Center above basket
     });
     DOM.pauseButton.addEventListener('click', togglePause);
 }
@@ -132,6 +145,7 @@ function startGame() {
     DOM.gameScreen.classList.remove('hidden');
     DOM.gameOverScreen.classList.remove('active');
     DOM.mysteryPopup.classList.remove('active');
+    DOM.progressContainer.classList.add('hidden');
     DOM.playerName.textContent = username;
     DOM.currentScore.textContent = score;
     DOM.basket.style.width = `${basketWidth}px`;
@@ -166,6 +180,7 @@ function dropItem() {
     elem.style.transition = `top ${duration}s linear`;
     elem.style.top = `${DOM.leftPanel.offsetHeight}px`;
     const collisionCheck = setInterval(() => {
+        if (!gameActive || isPaused) return; // Skip collision check if paused
         const basketRect = DOM.basket.getBoundingClientRect();
         const itemRect = elem.getBoundingClientRect();
         if (itemRect.left < basketRect.right && itemRect.right > basketRect.left &&
@@ -186,6 +201,7 @@ function handleCatch(item, elem) {
         score += item.points * multiplier;
         basketWidth = 100 + Math.random() * 500;
         DOM.basket.style.width = `${basketWidth}px`;
+        DOM.progressContainer.style.width = `${basketWidth}px`; // Match basket width
         if (!isMuted) SOUNDS.water.play();
     } else if (item.value === '🪱') {
         if (shield) return;
@@ -207,7 +223,14 @@ function handleCatch(item, elem) {
 }
 
 function updateGrowth() {
-    const newSize = Math.min(300, 100 + score / 20);
+    let newSize = logoSize;
+    if (score <= 6000) {
+        newSize = 100 * (1 + 0.3 * Math.floor(score / 500)); // 30% increase per 500 points
+    }
+    if (score > 6000 && score % 500 < 50) { // Wiggle only near 500-point increments
+        DOM.superseedLogo.classList.add('wiggle');
+        setTimeout(() => DOM.superseedLogo.classList.remove('wiggle'), 500);
+    }
     if (newSize !== logoSize) {
         logoSize = newSize;
         DOM.superseedLogo.style.width = `${logoSize}px`;
@@ -237,7 +260,7 @@ function endGame() {
 function resumeGame() {
     DOM.mysteryPopup.classList.remove('active');
     gameActive = true;
-    dropLoop();
+    if (!isPaused) dropLoop();
 }
 
 function togglePause() {
@@ -250,7 +273,6 @@ function togglePause() {
 function updateLeaderboard() {
     DOM.allTimeList.innerHTML = allTimeScores.map(s => `<li>${s.username}: ${s.score}</li>`).join('');
     DOM.dailyList.innerHTML = dailyScores.scores.map(s => `<li>${s.username}: ${s.score}</li>`).join('');
-    DOM.resetAllTimeBtn.classList.toggle('hidden', allTimeScores.length === 0);
 }
 
 function checkDailyReset() {
