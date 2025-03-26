@@ -9,7 +9,7 @@
 </head>
 <body class="dark-theme">
     <div id="game-container">
-        <!-- Splash Screen (Intro Page) -->
+        <!-- Splash Screen -->
         <div id="splash-screen">
             <h1>SUPR Growth</h1>
             <input type="text" id="username" placeholder="Enter your username" maxlength="20">
@@ -28,7 +28,7 @@
             </div>
         </div>
 
-        <!-- Game Screen (Split Screen) -->
+        <!-- Game Screen -->
         <div id="game-screen" class="hidden">
             <div id="left-panel">
                 <div id="basket"></div>
@@ -54,12 +54,13 @@
                     <button id="reset-all-time" class="hidden">Reset All-Time</button>
                 </div>
             </div>
+            <button id="pause-button">⏸️</button>
         </div>
 
         <!-- Game Over Popup -->
         <div id="game-over" class="hidden">
             <div id="game-over-content">
-                <h2>Game Over!</h2>
+                <h2><strong>Game Over!</strong></h2>
                 <p>Your $SUPR: <span id="final-score"></span></p>
                 <button id="reset-button">Play Again</button>
             </div>
@@ -72,17 +73,17 @@
                 <p>Choose a Superseed feature to boost your $SUPR harvest:</p>
                 <div class="mystery-option">
                     <button id="burn-debt"><span class="icon">🔥</span> <strong>Burn Debt</strong></button>
-                    <p>Sacrifice 25% of your score for a 2x multiplier on points for 30 seconds.</p>
+                    <p>Sacrifice 25% of your score for a 2x multiplier for 30s.</p>
                     <div id="burn-debt-bar" class="progress-bar hidden"></div>
                 </div>
                 <div class="mystery-option">
                     <button id="supercollateral"><span class="icon">🛡️</span> <strong>Supercollateral</strong></button>
-                    <p>Gain a shield against the Worminator for 30 seconds.</p>
+                    <p>Gain a shield against the Worminator for 30s.</p>
                     <div id="supercollateral-bar" class="progress-bar hidden"></div>
                 </div>
                 <div class="mystery-option">
                     <button id="proof-repayment"><span class="icon">🎲</span> <strong>Proof-of-Repayment</strong></button>
-                    <p>Gamble your score: 60% chance to double it, 40% chance to halve it.</p>
+                    <p>Gamble your score: 60% chance to double, 40% to halve.</p>
                 </div>
             </div>
         </div>
